@@ -1,0 +1,62 @@
+{
+  "repository": "MONAI/lung_nodule_ct_detection",
+  "commit": "9d6622fda0e52be0a4155fed2e0afb9c17bcd80b",
+  "version": "0.6.10",
+  "files": [
+    {
+      "path": "configs/inference.json",
+      "sha256": "d8e69c1ac4fa419181d0af3a03d5a6aef7f8f4cb1e46cfecbc4dc6879090cda3",
+      "bytes": 6991
+    },
+    {
+      "path": "configs/metadata.json",
+      "sha256": "bf621efe2b921a77f753ba58c2e562eb6d9afd3852ae2e4240b7a0e2bb278820",
+      "bytes": 4455
+    },
+    {
+      "path": "models/model.pt",
+      "sha256": "b5e79231466adae93a6fe8e8594029e9add142914e223b879aa0343bb2402d01",
+      "bytes": 83709381
+    },
+    {
+      "path": "scripts/__init__.py",
+      "sha256": "0ba4210e123c4fa26feefded9d8ed35e6656992901fae0df13a4dc3823e3ef73",
+      "bytes": 804
+    },
+    {
+      "path": "scripts/cocometric_ignite.py",
+      "sha256": "5dfea0747889e1005057665a8c2593aefce5ebb3cc0edc2ce647eb47b63018ff",
+      "bytes": 4936
+    },
+    {
+      "path": "scripts/detection_inferer.py",
+      "sha256": "420cc65c1cef882307ad5a778b45cec7d49ba44a5c8786aada849a3527c8717b",
+      "bytes": 3129
+    },
+    {
+      "path": "scripts/detection_saver.py",
+      "sha256": "44a90bebe51d2be547d9246899c1aa3f2361e99eb564fd8c40137f9a478d8feb",
+      "bytes": 6036
+    },
+    {
+      "path": "scripts/evaluator.py",
+      "sha256": "bc449e9bd9fc0e3fa298c37cf0ba4bb1fee3a199fe824703eb2c863521d84c28",
+      "bytes": 8917
+    },
+    {
+      "path": "scripts/trainer.py",
+      "sha256": "b1be86632fae0a81e5dd6ef4ce324d277776c4474a9b7edd09a4ed2ef500f439",
+      "bytes": 11534
+    },
+    {
+      "path": "scripts/utils.py",
+      "sha256": "430bf311a6bc5e47075819524455aed5e70f0bbd587cb0e23137aecf7ec228b0",
+      "bytes": 705
+    },
+    {
+      "path": "scripts/warmup_scheduler.py",
+      "sha256": "bc64dbc2f99be23e634f620b9fe26ef52c0e120cc5b459aceb38eca6ab398549",
+      "bytes": 4038
+    }
+  ]
+}

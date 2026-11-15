@@ -1,60 +1,200 @@
-import { useEffect, useState } from 'react';
-import { Alert, Box, Button, ButtonBase, Chip, CircularProgress, Divider, FormControlLabel, LinearProgress, Paper, Stack, Switch, Typography } from '@mui/material';
-import { AutoAwesome, DescriptionOutlined, FolderOutlined, HubOutlined, Refresh, ViewInAr } from '@mui/icons-material';
+// App.tsx — 흉부 CT 검토실 메인 어플리케이션 레이아웃
+// 좌측 메뉴로 작업을 나누고 선택한 기능만 표시한다. 검토 초안과 분석 선택은 메뉴 전환 동안 보존한다.
+
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Alert, Box, Button, Chip, Drawer, FormControl, FormControlLabel, IconButton, InputLabel, LinearProgress, List, ListItemButton, ListItemIcon, ListItemText, MenuItem, Paper, Select, Stack, Switch, Typography } from '@mui/material';
+import { AssessmentOutlined, BackupOutlined, CompareArrows, DescriptionOutlined, DocumentScannerOutlined, FactCheckOutlined, FolderOutlined, History, HubOutlined, Menu as MenuIcon, Refresh, ViewInAr, VisibilityOutlined } from '@mui/icons-material';
 import { request, type Health, type Preferences, type Study } from './api';
-import IntakePanel from './IntakePanel';
+import {
+  IntakeProvider,
+  ModelStatusCard,
+  ReportCard,
+  SeriesToolbar,
+  UploadCard,
+} from './IntakePanel';
 import Viewer, { type SelectedSeries } from './Viewer';
+import AnalysisPanel from './AnalysisPanel';
+import { AnalysisReviewProvider } from './AnalysisReview';
+import CandidateDetail from './CandidateDetail';
+import ReviewWorkspace, { ComparisonOverview } from './ReviewWorkspace';
+import UtilityWorkspace from './UtilityWorkspace';
+import ExtendedWorkspace from './ExtendedWorkspace';
 
-function Empty({ title, children, dark = false }: { title: string; children: React.ReactNode; dark?: boolean }) {
-  return <Stack spacing={1.5} alignItems="center" justifyContent="center" sx={{ minHeight: 270, px: 3, textAlign: 'center', color: dark ? '#abbcc9' : 'text.secondary' }}><HubOutlined sx={{ fontSize: 36, opacity: .6 }}/><Typography sx={{ color: dark ? '#edf3f8' : 'text.primary', fontWeight: 600 }}>{title}</Typography><Typography variant="body2" sx={{ maxWidth: 300 }}>{children}</Typography></Stack>;
-}
+// Three.js is local and loaded only when the 3D area is enabled. This keeps
+// initial intake/report rendering independent of a WebGL-capable browser.
+const SurfacePanel = lazy(() => import('./SurfacePanel'));
 
+/** Menu IDs are UI routes only; no patient identifiers enter browser history. */
+const menus = [
+  {id:'home',title:'검사 등록',icon:<FolderOutlined/>},
+  {id:'viewer',title:'CT 영상 열람',icon:<VisibilityOutlined/>},
+  {id:'analysis',title:'AI 분석 · 3D',icon:<ViewInAr/>},
+  {id:'reports',title:'판독소견 · 구조화',icon:<DescriptionOutlined/>},
+  {id:'compare',title:'소견 · AI 대조',icon:<CompareArrows/>},
+  {id:'summary',title:'검토 · 정리본',icon:<FactCheckOutlined/>},
+  {id:'documents',title:'문서 · OCR',icon:<DocumentScannerOutlined/>},
+  {id:'models',title:'독립 모델 비교',icon:<HubOutlined/>},
+  {id:'prior',title:'이전 CT 비교',icon:<History/>},
+  {id:'evaluation',title:'평가 · 지원 범위',icon:<AssessmentOutlined/>},
+  {id:'maintenance',title:'백업 · 데이터 관리',icon:<BackupOutlined/>},
+] as const;
+type MenuId=typeof menus[number]['id'];
+function initialMenu():MenuId { const id=window.location.hash.slice(1);return menus.some(m=>m.id===id)?id as MenuId:'viewer'; }
+
+/**
+ * 흉부 CT 검토실 최상위 컴포넌트
+ * 서버 연결, 등록된 검사 목록, 사용자 화면 환경설정을 관리하고
+ * 선택한 메뉴의 작업 영역만 노출하고 필요한 보조 패널을 함께 제공한다.
+ */
 export default function App() {
+  // 로컬 백엔드 서버 상태
   const [health, setHealth] = useState<Health | null>(null);
+  // 등록된 검사(Study) 목록
   const [studies, setStudies] = useState<Study[]>([]);
+  // 사용자 환경설정 (입체 구조 표시 여부 등)
   const [prefs, setPrefs] = useState<Preferences>({ show_structure: true });
+  // 초기 로딩 상태
   const [loading, setLoading] = useState(true);
+  // 전체 통신 오류 메시지
   const [error, setError] = useState('');
+  // 환경설정 저장 중 상태
   const [saving, setSaving] = useState(false);
+  // 연결 재시도 트리거 카운터
   const [attempt, setAttempt] = useState(0);
-  const [selectedSeries,setSelectedSeries]=useState<SelectedSeries|null>(null);
-  const [selectedStudy,setSelectedStudy]=useState('');
-  const [studySelectionLocked,setStudySelectionLocked]=useState(false);
+
+  // 현재 열람을 위해 선택된 시리즈 정보
+  const [selectedSeries, setSelectedSeries] = useState<SelectedSeries | null>(null);
+  // 현재 선택된 검사 ID
+  const [selectedStudy, setSelectedStudy] = useState('');
+  // 파일 전송 등 작업 중일 때 검사 변경 잠금 상태
+  const [studySelectionLocked, setStudySelectionLocked] = useState(false);
+
+  // 서버 연결 확인, 등록된 검사 목록 및 환경설정 비동기 조회
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true); setError(''); setHealth(null); setStudies([]);
-    Promise.all([request<Health>('health', controller.signal), request<{ items: Study[] }>('studies', controller.signal), request<Preferences>('preferences', controller.signal)])
-      .then(([h, s, p]) => { if (!controller.signal.aborted) { setHealth(h); setStudies(s.items); setPrefs(p); setSelectedStudy(current=>s.items.some(study=>study.id===current)?current:s.items.length===1?s.items[0].id:''); } })
-      .catch(e => { if (!controller.signal.aborted) setError(`서버에 연결하지 못했습니다. 로컬 서버 실행 상태를 확인해 주세요. ${e.message}`); })
-      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    setLoading(true);
+    setError('');
+    setHealth(null);
+    setStudies([]);
+
+    Promise.all([
+      request<Health>('health', controller.signal),
+      request<{ items: Study[] }>('studies', controller.signal),
+      request<Preferences>('preferences', controller.signal),
+    ])
+      .then(([h, s, p]) => {
+        if (!controller.signal.aborted) {
+          setHealth(h);
+          setStudies(s.items);
+          setPrefs(p);
+          // 기존 선택 검사가 유효하면 유지하고, 등록된 검사가 1개인 경우 자동 선택
+          setSelectedStudy((current) =>
+            s.items.some((study) => study.id === current)
+              ? current
+              : s.items.length === 1
+                ? s.items[0].id
+                : '',
+          );
+        }
+      })
+      .catch((e) => {
+        if (!controller.signal.aborted) {
+          setError(
+            `서버에 연결하지 못했습니다. 로컬 서버 실행 상태를 확인해 주세요. ${e.message}`,
+          );
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      });
+
     return () => controller.abort();
   }, [attempt]);
+
+  /** 입체 구조 영역 노출 여부 토글 및 서버 저장 */
   async function toggleStructure() {
-    setSaving(true); setError('');
-    try { setPrefs(await request<Preferences>('preferences', undefined, { show_structure: !prefs.show_structure })); }
-    catch { setError('화면 설정을 저장하지 못했습니다. 다시 시도해 주세요.'); }
-    finally { setSaving(false); }
+    setSaving(true);
+    setError('');
+    try {
+      setPrefs(
+        await request<Preferences>('preferences', undefined, {
+          show_structure: !prefs.show_structure,
+        }),
+      );
+    } catch {
+      setError('화면 설정을 저장하지 못했습니다. 다시 시도해 주세요.');
+    } finally {
+      setSaving(false);
+    }
   }
-  const connected = !!health;
-  return <Box sx={{ minHeight: '100vh', display: { xs: 'block', lg: 'flex' } }}>
-    <Box component="aside" sx={{ width: { lg: 210 }, flexShrink: 0, bgcolor: '#f8fbfd', borderRight: 1, borderColor: 'divider', p: 2.5 }}>
-      <Stack direction="row" spacing={1.2} alignItems="center" sx={{ mb: { xs: 2, lg: 5 } }}><Box sx={{ bgcolor: 'primary.main', color: 'white', borderRadius: 2, p: .8, display: 'flex' }}><HubOutlined/></Box><Box><Typography fontWeight={700}>흉부 CT 검토실</Typography><Typography variant="caption" color="text.secondary">LOCAL WORKSPACE</Typography></Box></Stack>
-      <Stack spacing={1}><Button startIcon={<FolderOutlined/>} variant="contained" fullWidth sx={{ justifyContent: 'flex-start' }}>검사 작업 공간</Button><Typography variant="caption" color="text.secondary" sx={{ px: 1, pt: 2 }}>영상 · 병원 판독 · AI 결과를<br/>같은 검사에서 확인합니다.</Typography></Stack>
-      <Divider sx={{ my: 3 }}/><Stack spacing={1}><Typography variant="overline" color="text.secondary">등록된 검사</Typography>{loading ? <CircularProgress size={18} aria-label="검사 목록 불러오는 중"/> : !connected ? <Typography variant="body2">조회할 수 없음</Typography> : studies.length === 0 ? <Typography variant="body2" color="text.secondary">아직 등록된 검사가 없습니다.</Typography> : studies.map(s => <Paper variant="outlined" sx={{overflow:'hidden',borderColor:selectedStudy===s.id?'primary.main':'divider'}} key={s.id}><ButtonBase disabled={studySelectionLocked||!connected} onClick={()=>setSelectedStudy(s.id)} aria-pressed={selectedStudy===s.id} aria-label={`검사 선택: ${s.description||'설명 미기재'}`} sx={{p:1.5,width:'100%',display:'block',textAlign:'left'}}><Typography variant="body2">{s.description || '설명 미기재'}</Typography><Typography variant="caption">{s.study_date || '검사일 미기재'}</Typography><Typography variant="caption" color="primary" sx={{display:'block'}}>검사 선택</Typography></ButtonBase></Paper>)}</Stack>
-    </Box>
-    <Box component="main" sx={{ flex: 1, minWidth: 0, p: { xs: 2, md: 3.5 } }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={2} sx={{ mb: 3 }}><Box><Typography variant="overline" color="text.secondary">CHEST REVIEW</Typography><Typography variant="h4">검사 작업 공간</Typography><Typography variant="body2" color="text.secondary" sx={{ mt: .6 }}>원본 영상부터 판독소견서 대조까지</Typography></Box><Stack direction="row" gap={1}><Chip variant="outlined" label={loading ? '연결 확인 중' : connected ? '로컬 저장소 연결됨' : '서버 연결 필요'} color={connected ? 'success' : 'default'}/><Button onClick={() => setAttempt(v => v + 1)} startIcon={<Refresh/>} disabled={loading}>새로고침</Button></Stack></Stack>
-      {loading && <LinearProgress aria-label="작업 공간 불러오는 중" sx={{ mb: 2 }}/ >}
-      {error && <Alert severity="error" sx={{ mb: 2 }} action={<Button color="inherit" onClick={() => setAttempt(v => v + 1)}>재시도</Button>}>{error}</Alert>}
-      {!loading && connected && <Alert severity="info" sx={{ mb: 3 }}>CT를 등록하고 시리즈의 ‘영상 열기’를 선택하세요. 판독소견서는 검사별로 직접 입력합니다. AI 분석·자동 대조는 준비 중입니다.</Alert>}
-      <IntakePanel connected={connected} studies={studies} selected={selectedStudy} onStudySelected={setSelectedStudy} onBusyChange={setStudySelectionLocked} onRefresh={() => setAttempt(v => v + 1)} onSeriesSelected={setSelectedSeries}/>
-      <Viewer selection={selectedSeries}/>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}><Typography variant="h6">영상과 소견 검토</Typography><FormControlLabel control={<Switch checked={prefs.show_structure} onChange={toggleStructure} disabled={!connected || saving}/>} label="입체 구조 영역"/></Stack>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: prefs.show_structure ? 'minmax(200px,1fr) minmax(240px,1fr)' : '1fr' }, gap: 2 }}>
-        {prefs.show_structure && <Paper variant="outlined" sx={{ height: '100%', minHeight: 440, p: 2 }}><Stack direction="row" alignItems="center" spacing={1}><ViewInAr color="primary"/><Typography variant="h6">내 CT의 입체 구조</Typography></Stack><Divider sx={{ my: 2 }}/><Empty title="분할 결과가 필요합니다">본인 CT에서 생성한 구조가 여기에 표시됩니다.</Empty><Chip label="미생성" variant="outlined"/></Paper>}
-        <Paper variant="outlined" sx={{ p: 2, gridColumn: { md: '1 / -1', xl: 'auto' } }}><Stack direction="row" spacing={1} alignItems="center"><DescriptionOutlined color="primary"/><Typography variant="h6">병원 소견과 AI 대조</Typography></Stack><Divider sx={{ my: 2 }}/><Empty title="대조할 자료가 없습니다">병원 판독소견서와 분석 결과가 준비되면 소견별로 대조합니다.</Empty><Stack direction="row" alignItems="center" spacing={1}><AutoAwesome color="disabled"/><Typography variant="caption" color="text.secondary">AI 분석 미연결 · 정상 여부 판단 전</Typography></Stack></Paper>
+
+  // Menu changes only visibility; mounted editors retain unsaved drafts and
+  // selected results. Switching the actual study still resets study-owned state.
+  const [menu,setMenu]=useState<MenuId>(initialMenu);
+  const [mobileMenu,setMobileMenu]=useState(false);
+  const [focus,setFocus]=useState(false);
+  const contentRef=useRef<HTMLDivElement|null>(null);
+  const connected=!!health;
+  const active=menus.find(m=>m.id===menu)!;
+  const reviewMenu=['reports','compare','summary'].includes(menu);
+  const rightVisible=!focus&&['analysis','reports','compare'].includes(menu);
+  useEffect(()=>{window.history.replaceState(null,'',`#${menu}`);contentRef.current?.scrollTo(0,0);},[menu]);
+  // Browser back/hash links are bounded to the known UI routes.
+  useEffect(()=>{const update=()=>setMenu(initialMenu());window.addEventListener('hashchange',update);return()=>window.removeEventListener('hashchange',update);},[]);
+  function navigate(id:MenuId){setMenu(id);setMobileMenu(false);setFocus(false);}
+  const navigation=<Stack sx={{height:'100%',p:2,boxSizing:'border-box'}} spacing={1.5}>
+    <Stack direction="row" spacing={1} alignItems="center" sx={{py:1}}><HubOutlined color="primary"/><Box><Typography variant="subtitle1" fontWeight={750}>흉부 CT 검토실</Typography><Typography variant="caption" color="text.secondary">LOCAL WORKSPACE</Typography></Box></Stack>
+    <FormControl fullWidth size="small"><InputLabel id="navigation-study-label">작업할 검사</InputLabel><Select labelId="navigation-study-label" label="작업할 검사" value={selectedStudy} onChange={e=>setSelectedStudy(e.target.value)} disabled={!connected||studySelectionLocked}>
+      <MenuItem value="">검사 선택</MenuItem>{studies.map(study=><MenuItem key={study.id} value={study.id}>{study.study_date||'날짜 미상'} · {study.description||study.id.slice(0,8)}</MenuItem>)}
+    </Select></FormControl>
+    <List aria-label="작업 메뉴" sx={{flex:1,minHeight:0,overflowY:'auto',py:0}}>{menus.map(item=><ListItemButton key={item.id} selected={menu===item.id} aria-current={menu===item.id?'page':undefined} onClick={()=>navigate(item.id)} sx={{borderRadius:1.5,mb:.4,py:.7,transition:'none','&.Mui-selected.Mui-focusVisible':{bgcolor:'primary.dark',color:'primary.contrastText',outline:'2px solid',outlineColor:'primary.light',outlineOffset:1},'&.Mui-selected':{bgcolor:'primary.main',color:'primary.contrastText','&:hover':{bgcolor:'primary.dark'},'& .MuiListItemIcon-root':{color:'inherit'}}}}><ListItemIcon sx={{minWidth:34}}>{item.icon}</ListItemIcon><ListItemText primary={item.title} primaryTypographyProps={{fontSize:13,fontWeight:menu===item.id?700:500}}/></ListItemButton>)}</List>
+    <Typography variant="caption" color="text.secondary">분석·문서 처리는 이 PC에서 실행</Typography>
+  </Stack>;
+  return <IntakeProvider connected={connected} studies={studies} selected={selectedStudy} onStudySelected={setSelectedStudy} onBusyChange={setStudySelectionLocked} onRefresh={()=>setAttempt(v=>v+1)} onSeriesSelected={setSelectedSeries}>
+    <AnalysisReviewProvider seriesId={selectedSeries?.seriesId||''}>
+      <Box sx={{display:'flex',height:'100dvh',overflow:'hidden',bgcolor:'background.default'}}>
+        <Box component="nav" aria-label="왼쪽 작업 탐색" sx={{display:{xs:'none',md:'block'},width:248,flexShrink:0,bgcolor:'#f8fbfd',borderRight:1,borderColor:'divider'}}>{navigation}</Box>
+        <Drawer open={mobileMenu} onClose={()=>setMobileMenu(false)} sx={{display:{xs:'block',md:'none'},'& .MuiDrawer-paper':{width:264,bgcolor:'#f8fbfd'}}}>{navigation}</Drawer>
+        <Box component="main" sx={{flex:1,minWidth:0,display:'flex',flexDirection:'column',height:'100%'}}>
+          <Stack spacing={1} sx={{px:{xs:2,lg:3},py:1.5,borderBottom:1,borderColor:'divider',bgcolor:'#fcfdfe'}}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
+              <Stack direction="row" alignItems="center" spacing={1}><IconButton aria-label="작업 메뉴 열기" onClick={()=>setMobileMenu(true)} sx={{display:{md:'none'}}}><MenuIcon/></IconButton><Box><Typography variant="overline" color="text.secondary">CHEST REVIEW</Typography><Typography variant="h5" component="h1">{active.title}</Typography></Box></Stack>
+              <Stack direction="row" gap={1} flexWrap="wrap">
+                <Chip size="small" variant="outlined" color={connected?'success':'default'} label={loading?'연결 확인 중':connected?'로컬 저장소 연결됨':'서버 연결 필요'}/>
+                {['analysis','reports','compare'].includes(menu)&&<Button size="small" aria-pressed={focus} onClick={()=>setFocus(v=>!v)}>{focus?'보조 패널 펼치기':'작업 영역 확대'}</Button>}
+                <Button size="small" variant="outlined" startIcon={<Refresh/>} disabled={loading} onClick={()=>setAttempt(v=>v+1)}>새로고침</Button>
+              </Stack>
+            </Stack>
+            {loading&&<LinearProgress aria-label="작업 공간 불러오는 중"/>}
+            {error&&<Alert severity="error" action={<Button onClick={()=>setAttempt(v=>v+1)}>재시도</Button>}>{error}</Alert>}
+          </Stack>
+          <Box sx={{display:{xs:'block',lg:'flex'},flex:1,minHeight:0,overflowY:{xs:'auto',lg:'hidden'}}}>
+            <Box ref={contentRef} sx={{flex:1,minWidth:0,p:{xs:2,lg:3},height:{lg:'100%'},overflowY:{lg:'auto'},boxSizing:'border-box'}}>
+              <Box hidden={menu!=='home'}>
+                <Box sx={{display:'grid',gridTemplateColumns:{xs:'1fr',xl:'minmax(0,1fr) minmax(320px,.8fr)'},gap:2}}>
+                  <Stack spacing={2}><Paper variant="outlined" sx={{p:2.5}}><Typography variant="h6" component="h2" sx={{mb:1}}>등록된 검사</Typography>{!studies.length?<Typography color="text.secondary">{connected?'아직 등록된 검사가 없습니다.':'조회할 수 없음'}</Typography>:<Stack spacing={1}>{studies.map(study=><Button key={study.id} aria-label={`검사 선택: ${study.description||study.id.slice(0,8)}`} variant={selectedStudy===study.id?'contained':'outlined'} disabled={studySelectionLocked} onClick={()=>setSelectedStudy(study.id)} sx={{justifyContent:'flex-start',textAlign:'left',overflowWrap:'anywhere'}}>{study.study_date||'날짜 미상'} · {study.description||study.id.slice(0,8)}</Button>)}</Stack>}<Button sx={{mt:2}} onClick={()=>navigate('viewer')}>선택 검사 영상으로 이동</Button></Paper><UploadCard/></Stack>
+                  <ModelStatusCard/>
+                </Box>
+              </Box>
+              <Box hidden={!['viewer','analysis'].includes(menu)}><SeriesToolbar/></Box>
+              {/* Keep the viewer and analysis state mounted, so menu changes do
+                  not reload DICOM or clear the candidate selected for review. */}
+              <Box hidden={menu!=='viewer'}><Viewer selection={selectedSeries}/></Box>
+              <Box hidden={menu!=='analysis'}><AnalysisPanel key={selectedSeries?.seriesId||'no-analysis-series'} selection={selectedSeries}/></Box>
+              <Box hidden={!reviewMenu}><ReviewWorkspace key={`review-${selectedStudy}`} section={menu==='compare'?1:menu==='summary'?2:0}/></Box>
+              <Box hidden={!['documents','maintenance'].includes(menu)}><UtilityWorkspace key={`utility-${selectedStudy}`} section={menu==='maintenance'?'maintenance':'documents'}/></Box>
+              <Box hidden={!['models','prior','evaluation'].includes(menu)}><ExtendedWorkspace key={`extended-${selectedStudy}-${selectedSeries?.seriesId||''}`} section={menu==='prior'?'prior':menu==='evaluation'?'evaluation':'models'}/></Box>
+            </Box>
+            {rightVisible&&<Box component="aside" aria-label="선택 작업 보조 패널" sx={{width:{lg:360,xl:400},flexShrink:0,p:2,boxSizing:'border-box',height:{lg:'100%'},overflowY:{lg:'auto'},borderLeft:{lg:1},borderTop:{xs:1,lg:0},borderColor:'divider',bgcolor:'#fcfdfe'}}><Stack spacing={2}>
+              {menu==='reports'&&<ReportCard/>}
+              {menu==='analysis'&&<><CandidateDetail/><FormControlLabel control={<Switch checked={prefs.show_structure} onChange={toggleStructure} disabled={!connected||saving}/>} label="입체 구조 영역"/>{prefs.show_structure&&<Suspense fallback={<LinearProgress aria-label="3D 화면 준비 중"/>}><SurfacePanel/></Suspense>}</>}
+              {menu==='compare'&&<><ComparisonOverview onOpen={()=>navigate('compare')}/><CandidateDetail/></>}
+            </Stack></Box>}
+          </Box>
+        </Box>
       </Box>
-      <Typography component="footer" variant="caption" color="text.secondary" sx={{ display: 'block', mt: 3 }}>데이터 처리: 로컬 PC · {health ? `API v${health.version}` : 'API 상태 미확인'}</Typography>
-    </Box>
-  </Box>;
+    </AnalysisReviewProvider>
+  </IntakeProvider>;
 }

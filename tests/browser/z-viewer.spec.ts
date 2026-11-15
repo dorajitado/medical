@@ -9,11 +9,13 @@ test('native OHIF renders CT and source voxel measurements are linked',async({pa
   execFileSync(path.resolve('.venv/Scripts/python.exe'),['-m','backend.create_volume_fixture']);
   const external:string[]=[];
   page.on('request',req=>{const url=new URL(req.url());if(url.protocol.startsWith('http')&&!['127.0.0.1','localhost'].includes(url.hostname))external.push(req.url());});
-  await page.goto('/');
+  await page.goto('/#home');
   await expect(page.getByRole('button',{name:'CT 폴더 선택'})).toBeEnabled();
   await page.getByLabel('DICOM 폴더 선택',{exact:true}).setInputFiles(path.resolve('data/qa-fixtures/volume'));
   await expect(page.getByText('등록 처리 완료').first()).toBeVisible();
-  await expect(page.getByText(/32\/32개 처리/)).toBeVisible();
+  // Upload progress appears both in the live bar and the persisted job history.
+  await expect(page.getByText('32/32개 처리', {exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'CT 영상 열람',exact:true}).click();
   await page.getByRole('combobox',{name:'연결할 검사'}).click();
   await page.getByRole('option',{name:/SYNTHETIC VOLUME QA/}).click();
   await page.getByRole('button',{name:'영상 열기',exact:true}).click();
@@ -76,6 +78,14 @@ test('native OHIF renders CT and source voxel measurements are linked',async({pa
     await expect(page.getByText('거리: 8.000 mm',{exact:true})).toBeVisible();
     await page.screenshot({path:'data/browser-results/ohif-native.png',fullPage:true});
     fs.writeFileSync('data/browser-results/ohif-dom.txt',await frame.locator('body').innerText());
+    // Returning from another menu preserves the iframe document and source
+    // measurements; it must resize back into a visible CT viewport.
+    await frame.locator('body').evaluate(el=>{el.dataset.menuRetention='same-document';});
+    await page.getByRole('button',{name:'AI 분석 · 3D',exact:true}).click();
+    await page.getByRole('button',{name:'CT 영상 열람',exact:true}).click();
+    await expect(frame.locator('body')).toHaveAttribute('data-menu-retention','same-document');
+    await expect(frame.locator('canvas').first()).toBeVisible();
+    await expect(page.getByText('거리: 8.000 mm',{exact:true})).toBeVisible();
     expect(external).toEqual([]);
   }catch(error){
     await page.screenshot({path:'data/browser-results/ohif-failure.png',fullPage:true});

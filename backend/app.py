@@ -15,6 +15,11 @@ from .models import model_registry
 from .storage import Store
 from .geometry import GeometryError, validate_series, probe, distance
 from .native_imaging import NativeImaging
+from .analysis import AnalysisManager
+from .analysis_runtime import runtime_status
+from .workflow_api import create_workflow_router
+from .maintenance_api import create_maintenance_router
+from .extended_api import create_extended_router
 
 ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_ORIGINS = {'http://127.0.0.1:5173', 'http://localhost:5173', 'http://127.0.0.1:8000', 'http://localhost:8000'}
@@ -44,17 +49,31 @@ class DistanceInput(BaseModel):
     start: tuple[int,int,int]
     end: tuple[int,int,int]
 
-def create_app(data_dir: Path = ROOT / 'data', allowed_origins: set[str] | None = None, imaging_path: Path | None = None) -> FastAPI:
+class AnalysisInput(BaseModel):
+    """No paths, arbitrary model arguments, or report text cross this boundary."""
+    model_config = ConfigDict(extra='forbid', strict=True)
+    model_id: str = Field(pattern='^(total|lung_nodules|pleural_pericard_effusion|monai_nodule)$')
+    confirmed: bool
+
+def create_app(data_dir: Path = ROOT / 'data', allowed_origins: set[str] | None = None, imaging_path: Path | None = None, analysis_enabled: bool = True) -> FastAPI:
     store = Store(data_dir)
     imaging = NativeImaging(imaging_path or data_dir/'imaging'/'orthanc.json')
     origins = ALLOWED_ORIGINS if allowed_origins is None else allowed_origins
     import_lock = asyncio.Lock()
+    mutation_lock = asyncio.Lock()
+    analysis = AnalysisManager(store, enabled=analysis_enabled)
     @asynccontextmanager
     async def lifespan(app):
         store.initialize()
-        yield
-    app = FastAPI(title='Chest Review Local API', version='0.3.0', lifespan=lifespan)
+        try:
+            yield
+        finally:
+            await run_in_threadpool(analysis.close)
+    app = FastAPI(title='Chest Review Local API', version='0.6.0', lifespan=lifespan)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1', 'localhost'])
+    app.include_router(create_workflow_router(store,analysis))
+    app.include_router(create_maintenance_router(store,imaging))
+    app.include_router(create_extended_router(store,analysis))
 
     @app.middleware('http')
     async def local_requests(request: Request, call_next):
@@ -63,7 +82,13 @@ def create_app(data_dir: Path = ROOT / 'data', allowed_origins: set[str] | None 
             return JSONResponse({'detail': 'Request origin is not allowed'}, status_code=403)
         if request.method not in {'GET', 'HEAD', 'OPTIONS'} and request.headers.get('x-workspace-request') != '1':
             return JSONResponse({'detail': 'Workspace request header required'}, status_code=403)
-        response = await call_next(request)
+        # Serialize browser mutations around backup/deletion snapshots. GPU
+        # background tasks are separately checked by require_idle before them.
+        if request.method not in {'GET','HEAD','OPTIONS'}:
+            async with mutation_lock:
+                response = await call_next(request)
+        else:
+            response = await call_next(request)
         response.headers['Cache-Control'] = 'no-store'
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
@@ -74,7 +99,8 @@ def create_app(data_dir: Path = ROOT / 'data', allowed_origins: set[str] | None 
     def health():
         with store.connect() as c:
             c.execute('SELECT 1').fetchone()
-        return {'status': 'ready', 'storage': 'ready', 'version': app.version, 'imaging': 'configured' if imaging.path.exists() else 'not_connected', 'analysis': 'not_connected', 'intake': 'ready'}
+        # Configured means install-time readiness, never an analysed/normal CT.
+        return {'status': 'ready', 'storage': 'ready', 'version': app.version, 'imaging': 'configured' if imaging.path.exists() else 'not_connected', 'analysis': 'configured' if runtime_status()['ready'] else 'not_connected', 'intake': 'ready'}
 
     @app.get('/api/studies')
     def studies():
@@ -105,6 +131,45 @@ def create_app(data_dir: Path = ROOT / 'data', allowed_origins: set[str] | None 
     @app.get('/api/models')
     def models():
         return {'items': model_registry()}
+
+    def analysis_call(function, *args):
+        """Translate only known user-facing failures, keeping internal paths private."""
+        try:
+            return function(*args)
+        except KeyError:
+            raise HTTPException(404, '시리즈 또는 분석 실행을 찾을 수 없습니다.')
+        except GeometryError as exc:
+            raise HTTPException(422, str(exc))
+        except (OSError, ValueError):
+            raise HTTPException(422, '분석 파일이 없거나 손상되었습니다. 새 실행이 필요합니다.')
+
+    @app.get('/api/series/{series_id}/analysis-eligibility')
+    def analysis_eligibility(series_id: str, model_id: str = 'total'):
+        return analysis_call(analysis.eligibility, series_id, model_id)
+
+    @app.get('/api/series/{series_id}/analyses')
+    def analysis_runs(series_id: str):
+        return {'items': analysis.list(series_id)}
+
+    @app.post('/api/series/{series_id}/analyses', status_code=201)
+    def create_analysis(series_id: str, value: AnalysisInput):
+        return analysis_call(analysis.enqueue, series_id, value.confirmed, value.model_id)
+
+    @app.post('/api/analyses/{run_id}/cancel')
+    def cancel_analysis(run_id: str):
+        return analysis_call(analysis.cancel, run_id)
+
+    @app.get('/api/analyses/{run_id}/result')
+    def analysis_result(run_id: str):
+        return analysis_call(analysis.result, run_id)
+
+    @app.get('/api/analyses/{run_id}/slices/{z}')
+    def analysis_slice(run_id: str, z: int):
+        return analysis_call(analysis.slice, run_id, z)
+
+    @app.get('/api/analyses/{run_id}/surfaces')
+    def analysis_surfaces(run_id: str):
+        return analysis_call(analysis.surfaces, run_id)
 
     @app.get('/api/imports')
     def imports():
@@ -184,6 +249,8 @@ def create_app(data_dir: Path = ROOT / 'data', allowed_origins: set[str] | None 
         with store.connect() as c:
             require_study(c, study_id)
             c.execute('INSERT INTO report_versions(id,study_id,source,text) VALUES (?,?,?,?)', (rid, study_id, value.source, value.text))
+            from .workflow import audit
+            audit(c,'report_version_created',rid,study_id,{'source':value.source})
         return {'id': rid}
 
     @app.get('/api/imaging/status')

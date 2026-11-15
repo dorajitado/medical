@@ -154,8 +154,10 @@ class IntakeTests(unittest.TestCase):
             self.assertEqual(len(restarted.get(path).json()['items']),2)
 
     def test_models_never_claim_unconfigured_inference_ready(self):
-        items = self.client.get('/api/models').json()['items']
-        self.assertEqual(len(items),3)
+        # Hardware-independent check: absent runtime must never imply readiness.
+        with patch('backend.models.runtime_status', return_value={'ready': False}):
+            items = self.client.get('/api/models').json()['items']
+        self.assertEqual(len(items),4)
         self.assertTrue(all(not m['executable'] and m['weights_sha256'] is None and m['validation_status']=='not_evaluated' for m in items))
 
     def test_report_source_is_explicit_and_schema_rejects_forged_source(self):

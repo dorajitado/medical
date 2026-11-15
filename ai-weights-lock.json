@@ -1,0 +1,266 @@
+{
+  "weights_id": "Dataset297_TotalSegmentator_total_3mm_1559subj / v2.0.0-weights",
+  "weights_digest": "1b29e88f59684931601ce38381b60fbbb2f4b864d93b084657066b5574467614",
+  "weights_files": [
+    {
+      "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/._.DS_Store",
+      "bytes": 4096,
+      "sha256": "e15affcd4ff2dea5d20b1474c37374e5a318e29f0cae477580b0d5438b082f64"
+    },
+    {
+      "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/.DS_Store",
+      "bytes": 6148,
+      "sha256": "51c0efba9ce60b004a2e65e37ff39395ed9771a5bde878a37fa9aebcc6b059f5"
+    },
+    {
+      "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/dataset.json",
+      "bytes": 3796,
+      "sha256": "e804e08ad8912e3a6f541741c8c78799d75acbd3f4f3f18ff5f211bbd3da961a"
+    },
+    {
+      "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/dataset_fingerprint.json",
+      "bytes": 232834,
+      "sha256": "f1336cd0df44e0eeecfa69143226c05b246c550e690b7b12929f65ca9843260f"
+    },
+    {
+      "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/fold_0/checkpoint_final.pth",
+      "bytes": 164939235,
+      "sha256": "1e38e40356adc2706a662e365405a97f862d62a7da65f6bf81d025aee1b979ac"
+    },
+    {
+      "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/fold_0/debug.json",
+      "bytes": 18789,
+      "sha256": "43567a34b1bc755d66ce2cbbf171f1d18d0da44067e7c38810774da781ddd7f4"
+    },
+    {
+      "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/fold_0/progress.png",
+      "bytes": 498861,
+      "sha256": "69eb4c93cd35411d39763d0759e29cbf83cfa1fca880c5c0de988f1caea1199e"
+    },
+    {
+      "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/plans.json",
+      "bytes": 7110,
+      "sha256": "d1cb3c15f53dc36fdb618e0f9082573d1f50b74a9b5fa73094ac8680845839f1"
+    }
+  ],
+  "models": {
+    "total": {
+      "weights_id": "Dataset297_TotalSegmentator_total_3mm_1559subj / v2.0.0-weights",
+      "weights_digest": "1b29e88f59684931601ce38381b60fbbb2f4b864d93b084657066b5574467614",
+      "weights_files": [
+        {
+          "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/._.DS_Store",
+          "bytes": 4096,
+          "sha256": "e15affcd4ff2dea5d20b1474c37374e5a318e29f0cae477580b0d5438b082f64"
+        },
+        {
+          "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/.DS_Store",
+          "bytes": 6148,
+          "sha256": "51c0efba9ce60b004a2e65e37ff39395ed9771a5bde878a37fa9aebcc6b059f5"
+        },
+        {
+          "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/dataset.json",
+          "bytes": 3796,
+          "sha256": "e804e08ad8912e3a6f541741c8c78799d75acbd3f4f3f18ff5f211bbd3da961a"
+        },
+        {
+          "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/dataset_fingerprint.json",
+          "bytes": 232834,
+          "sha256": "f1336cd0df44e0eeecfa69143226c05b246c550e690b7b12929f65ca9843260f"
+        },
+        {
+          "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/fold_0/checkpoint_final.pth",
+          "bytes": 164939235,
+          "sha256": "1e38e40356adc2706a662e365405a97f862d62a7da65f6bf81d025aee1b979ac"
+        },
+        {
+          "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/fold_0/debug.json",
+          "bytes": 18789,
+          "sha256": "43567a34b1bc755d66ce2cbbf171f1d18d0da44067e7c38810774da781ddd7f4"
+        },
+        {
+          "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/fold_0/progress.png",
+          "bytes": 498861,
+          "sha256": "69eb4c93cd35411d39763d0759e29cbf83cfa1fca880c5c0de988f1caea1199e"
+        },
+        {
+          "path": "weights/Dataset297_TotalSegmentator_total_3mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/plans.json",
+          "bytes": 7110,
+          "sha256": "d1cb3c15f53dc36fdb618e0f9082573d1f50b74a9b5fa73094ac8680845839f1"
+        }
+      ]
+    },
+    "lung_nodules": {
+      "weights_id": "Dataset913_lung_nodules / v2.5.0-weights; Dataset298_TotalSegmentator_total_6mm_1559subj / v2.0.0-weights",
+      "weights_digest": "0994b3906e80a6edece97910942d5583d1a01e5fe55cbc57cf1af1990b2b162b",
+      "weights_files": [
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/._.DS_Store",
+          "bytes": 4096,
+          "sha256": "2728ba6baa6dafd20fa4621f02e03ba42e9fc0eb7897d03c54850e406d23d997"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/.DS_Store",
+          "bytes": 10244,
+          "sha256": "da14f05b939aa2572d459b62d8da426ce7165bb15254b8cfb5320c10fa564fcf"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/dataset.json",
+          "bytes": 3796,
+          "sha256": "e804e08ad8912e3a6f541741c8c78799d75acbd3f4f3f18ff5f211bbd3da961a"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/dataset_fingerprint.json",
+          "bytes": 229805,
+          "sha256": "703afc1b58d440a031f61ac61fd90d5672027fe531ea8ce7693a2a73bd041b1c"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/fold_0/checkpoint_final.pth",
+          "bytes": 164951587,
+          "sha256": "3489323a4b759506ab46b489eb78b72142f2143aea6e6d828604d754bd7a9270"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/fold_0/debug.json",
+          "bytes": 18718,
+          "sha256": "557737622576c6e067eead7c8499d965b1403742a6a0bd31ee37b1fec2464f58"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/fold_0/progress.png",
+          "bytes": 554960,
+          "sha256": "6d4e0d701e0b74efe36a967d724e422d67d56e36c4fb04d5f113279f4be0006c"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/plans.json",
+          "bytes": 6898,
+          "sha256": "bfd9ab6cfc0e094ced3aff7d7ad23e00e4d50376110b9fdfce0fbca5564c8ca8"
+        },
+        {
+          "path": "weights/Dataset913_lung_nodules/nnUNetTrainer_MOSAIC_1k_QuarterLR_NoMirroring__nnUNetPlans__3d_fullres/dataset.json",
+          "bytes": 392,
+          "sha256": "cd3ea49bbb9bb7cfd2d896e1b075c2aa7f16b8f39e1ba33b5eb4b3b1352e8543"
+        },
+        {
+          "path": "weights/Dataset913_lung_nodules/nnUNetTrainer_MOSAIC_1k_QuarterLR_NoMirroring__nnUNetPlans__3d_fullres/dataset_fingerprint.json",
+          "bytes": 217326,
+          "sha256": "d120496997590c4af918985755380e1680771d0960f4c67fa81b31cf1ebcd619"
+        },
+        {
+          "path": "weights/Dataset913_lung_nodules/nnUNetTrainer_MOSAIC_1k_QuarterLR_NoMirroring__nnUNetPlans__3d_fullres/fold_0/checkpoint_final.pth",
+          "bytes": 819570822,
+          "sha256": "861ce52fc39f635e3e2bce264c96230ebead3b2015d96d33a96ae956ce2a9398"
+        },
+        {
+          "path": "weights/Dataset913_lung_nodules/nnUNetTrainer_MOSAIC_1k_QuarterLR_NoMirroring__nnUNetPlans__3d_fullres/fold_0/debug.json",
+          "bytes": 19850,
+          "sha256": "c149f9b32ca37c284e5bc30caff52ee2034ce9a9a37d5e2f186b07ab0b3a4b6f"
+        },
+        {
+          "path": "weights/Dataset913_lung_nodules/nnUNetTrainer_MOSAIC_1k_QuarterLR_NoMirroring__nnUNetPlans__3d_fullres/fold_0/progress.png",
+          "bytes": 1318843,
+          "sha256": "c0ee2aec21ae4517f2a98c18fab97934a06f42b954aa0f5fa6c026f855284d84"
+        },
+        {
+          "path": "weights/Dataset913_lung_nodules/nnUNetTrainer_MOSAIC_1k_QuarterLR_NoMirroring__nnUNetPlans__3d_fullres/plans.json",
+          "bytes": 16399,
+          "sha256": "30cf08cc22cbe958d5e56813a879c0645477cde2c48a83babe1c208619ad9e2d"
+        }
+      ]
+    },
+    "pleural_pericard_effusion": {
+      "weights_id": "Dataset315_thoraxCT / v2.0.0-weights; Dataset298_TotalSegmentator_total_6mm_1559subj / v2.0.0-weights",
+      "weights_digest": "dd54209e20153ad3e74d49ca445bc078a19144d59867caf1c007ee3cdb66fcd3",
+      "weights_files": [
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/._.DS_Store",
+          "bytes": 4096,
+          "sha256": "2728ba6baa6dafd20fa4621f02e03ba42e9fc0eb7897d03c54850e406d23d997"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/.DS_Store",
+          "bytes": 10244,
+          "sha256": "da14f05b939aa2572d459b62d8da426ce7165bb15254b8cfb5320c10fa564fcf"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/dataset.json",
+          "bytes": 3796,
+          "sha256": "e804e08ad8912e3a6f541741c8c78799d75acbd3f4f3f18ff5f211bbd3da961a"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/dataset_fingerprint.json",
+          "bytes": 229805,
+          "sha256": "703afc1b58d440a031f61ac61fd90d5672027fe531ea8ce7693a2a73bd041b1c"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/fold_0/checkpoint_final.pth",
+          "bytes": 164951587,
+          "sha256": "3489323a4b759506ab46b489eb78b72142f2143aea6e6d828604d754bd7a9270"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/fold_0/debug.json",
+          "bytes": 18718,
+          "sha256": "557737622576c6e067eead7c8499d965b1403742a6a0bd31ee37b1fec2464f58"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/fold_0/progress.png",
+          "bytes": 554960,
+          "sha256": "6d4e0d701e0b74efe36a967d724e422d67d56e36c4fb04d5f113279f4be0006c"
+        },
+        {
+          "path": "weights/Dataset298_TotalSegmentator_total_6mm_1559subj/nnUNetTrainer_4000epochs_NoMirroring__nnUNetPlans__3d_fullres/plans.json",
+          "bytes": 6898,
+          "sha256": "bfd9ab6cfc0e094ced3aff7d7ad23e00e4d50376110b9fdfce0fbca5564c8ca8"
+        },
+        {
+          "path": "weights/Dataset315_thoraxCT/._.DS_Store",
+          "bytes": 4096,
+          "sha256": "0ad3770f4646d915fd7cd712b88906099d237d7944c17d36f0479bdda947d4a0"
+        },
+        {
+          "path": "weights/Dataset315_thoraxCT/.DS_Store",
+          "bytes": 6148,
+          "sha256": "79c13b7530e6d20d98fc46e7e9712a9e6e4cb58b2482cd4c3ad0899ea9a1cbfd"
+        },
+        {
+          "path": "weights/Dataset315_thoraxCT/nnUNetTrainer__nnUNetPlans__3d_fullres/._.DS_Store",
+          "bytes": 4096,
+          "sha256": "d4dc487a0bccb7c79f1450e33f9de9bd06051afa559f6e92725f8f6cb6d5046b"
+        },
+        {
+          "path": "weights/Dataset315_thoraxCT/nnUNetTrainer__nnUNetPlans__3d_fullres/.DS_Store",
+          "bytes": 6148,
+          "sha256": "329aa5d90cc1d5e9ab971bd9c6ad16eb996f2adc589047302dcbb5630652c269"
+        },
+        {
+          "path": "weights/Dataset315_thoraxCT/nnUNetTrainer__nnUNetPlans__3d_fullres/dataset.json",
+          "bytes": 448,
+          "sha256": "2175d6f274c4591fb2d8fbbe094a0e73747ccfdd1939c161a7b9ccb54764992e"
+        },
+        {
+          "path": "weights/Dataset315_thoraxCT/nnUNetTrainer__nnUNetPlans__3d_fullres/dataset_fingerprint.json",
+          "bytes": 85631,
+          "sha256": "4e2eea9dca5cb5f88e1d6325afa5d923ca1b445a1a3574583c8c0776f0c8d36a"
+        },
+        {
+          "path": "weights/Dataset315_thoraxCT/nnUNetTrainer__nnUNetPlans__3d_fullres/fold_0/checkpoint_final.pth",
+          "bytes": 250183291,
+          "sha256": "c971fd018e32079a0d2abd9744f26e234d8778f6567c53ed948b22c21a1b84f0"
+        },
+        {
+          "path": "weights/Dataset315_thoraxCT/nnUNetTrainer__nnUNetPlans__3d_fullres/fold_0/debug.json",
+          "bytes": 16677,
+          "sha256": "3e14f2fe507ec704c29aea6fc2bbbbfb013f2084eb3f52be622126a2eb6c39d3"
+        },
+        {
+          "path": "weights/Dataset315_thoraxCT/nnUNetTrainer__nnUNetPlans__3d_fullres/fold_0/progress.png",
+          "bytes": 954664,
+          "sha256": "7bbb66aa44672b7f8bc6b7eb95365ad383590794dd5bbfcdf3079d0b16cfaf8d"
+        },
+        {
+          "path": "weights/Dataset315_thoraxCT/nnUNetTrainer__nnUNetPlans__3d_fullres/plans.json",
+          "bytes": 11154,
+          "sha256": "779bff719b043483cbb20338c18f5645ea4a054794620beaa165a53eed9875af"
+        }
+      ]
+    }
+  }
+}

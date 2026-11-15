@@ -1,0 +1,21 @@
+{
+  "release": "b12405",
+  "repository": "Qwen/Qwen3-1.7B-GGUF",
+  "commit": "90862c4b9d2787eaed51d12237eafdfe7c5f6077",
+  "model": "Qwen3-1.7B-Q8_0.gguf",
+  "files": [
+    {
+      "path": "runtime.zip",
+      "url": "https://github.com/ggml-org/llama.cpp/releases/download/b12405/llama-b12405-bin-win-cpu-x64.zip",
+      "sha256": "6a382b6e7fd07a6fe4d0d888dcce7e1f10471b53554e0f47631f780c8edf51e9",
+      "bytes": 25126814
+    },
+    {
+      "path": "Qwen3-1.7B-Q8_0.gguf",
+      "url": "https://huggingface.co/Qwen/Qwen3-1.7B-GGUF/resolve/90862c4b9d2787eaed51d12237eafdfe7c5f6077/Qwen3-1.7B-Q8_0.gguf",
+      "sha256": "061b54daade076b5d3362dac252678d17da8c68f07560be70818cace6590cb1a",
+      "bytes": 1834426016
+    }
+  ],
+  "device": "CPU only"
+}

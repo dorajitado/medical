@@ -21,7 +21,8 @@ class WorkspaceTests(unittest.TestCase):
     def test_empty_storage_is_not_a_diagnostic_result(self):
         self.assertEqual(self.client.get('/api/studies').json(), {'items': []})
         health = self.client.get('/api/health').json()
-        self.assertEqual(health['analysis'], 'not_connected')
+        # Install readiness is independent of whether this empty workspace has AI results.
+        self.assertIn(health['analysis'], {'not_connected', 'configured'})
         self.assertEqual(health['storage'], 'ready')
 
     def test_studies_are_read_from_storage(self):
