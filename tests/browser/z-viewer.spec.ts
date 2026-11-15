@@ -1,0 +1,85 @@
+import { test,expect } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+
+test('native OHIF renders CT and source voxel measurements are linked',async({page})=>{
+  test.setTimeout(120000);
+  await page.setViewportSize({width:1920,height:1080});
+  execFileSync(path.resolve('.venv/Scripts/python.exe'),['-m','backend.create_volume_fixture']);
+  const external:string[]=[];
+  page.on('request',req=>{const url=new URL(req.url());if(url.protocol.startsWith('http')&&!['127.0.0.1','localhost'].includes(url.hostname))external.push(req.url());});
+  await page.goto('/');
+  await expect(page.getByRole('button',{name:'CT 폴더 선택'})).toBeEnabled();
+  await page.getByLabel('DICOM 폴더 선택',{exact:true}).setInputFiles(path.resolve('data/qa-fixtures/volume'));
+  await expect(page.getByText('등록 처리 완료').first()).toBeVisible();
+  await expect(page.getByText(/32\/32개 처리/)).toBeVisible();
+  await page.getByRole('combobox',{name:'연결할 검사'}).click();
+  await page.getByRole('option',{name:/SYNTHETIC VOLUME QA/}).click();
+  await page.getByRole('button',{name:'영상 열기',exact:true}).click();
+  const frame=page.frameLocator('iframe[title="OHIF CT 영상 뷰어"]');
+  try {
+    await expect(frame.locator('canvas').first()).toBeVisible({timeout:60000});
+    await page.locator('iframe').scrollIntoViewIfNeeded();
+    if(await frame.getByText('Skip all',{exact:true}).isVisible())await frame.getByText('Skip all',{exact:true}).click({timeout:5000});
+    if(await frame.getByText('Confirm and hide',{exact:true}).isVisible())await frame.getByText('Confirm and hide',{exact:true}).click({timeout:5000});
+    fs.writeFileSync('data/browser-results/ohif-controls.json',JSON.stringify(await frame.locator('button,[data-cy]').evaluateAll(els=>els.map(el=>({tag:el.tagName,label:el.getAttribute('aria-label'),title:el.getAttribute('title'),cy:el.getAttribute('data-cy'),text:el.textContent?.slice(0,80),html:el.outerHTML.slice(0,220)}))),null,2));
+    await frame.locator('canvas').first().hover();
+    await page.mouse.wheel(0,120);
+    await expect.poll(async()=>((await frame.locator('body').innerText()).match(/I:\d+ \((\d+)\/32\)/)?.[1]||'1')).not.toBe('1');
+    const beforeSlider=(await frame.locator('body').innerText()).match(/I:\d+ \((\d+)\/32\)/)?.[1];
+    const sliderBox=await frame.getByRole('slider',{name:'Image navigation scrollbar'}).boundingBox();
+    if(!sliderBox)throw new Error('Image scrollbar missing');
+    await page.mouse.click(sliderBox.x+sliderBox.width*.5,sliderBox.y+sliderBox.height*.65);
+    await expect.poll(async()=>((await frame.locator('body').innerText()).match(/I:\d+ \((\d+)\/32\)/)?.[1]||'')).not.toBe(beforeSlider);
+    for(const tool of ['Zoom','Pan','WindowLevel']) {
+      await frame.locator(`[data-cy="${tool}-btn"]`).click();
+      const box=await frame.locator('canvas').first().boundingBox();
+      if(!box)throw new Error('Viewport missing');
+      await page.mouse.move(box.x+box.width*.5,box.y+box.height*.5);
+      await page.mouse.down();await page.mouse.move(box.x+box.width*.5+25,box.y+box.height*.5+25,{steps:5});await page.mouse.up();
+    }
+    await frame.locator('[data-cy="windowLevelMenu-btn"]').click();
+    await frame.getByText('Modality Window Presets',{exact:true}).hover();
+    fs.writeFileSync('data/browser-results/ohif-window-menu.txt',await frame.locator('body').innerText());
+    fs.writeFileSync('data/browser-results/ohif-inputs.json',JSON.stringify(await frame.locator('input').evaluateAll(els=>els.map(el=>({name:el.name,type:el.type,placeholder:el.placeholder,value:el.value,html:el.outerHTML.slice(0,350)}))),null,2));
+    await page.keyboard.press('Escape');
+    await frame.locator('canvas').first().click();
+    await page.keyboard.press('1');
+    await expect.poll(async()=>((await frame.locator('body').innerText()).match(/W:\s*(\d+)\s*L:\s*(-?\d+)/)?.slice(1).join(',')||'')).toBe('400,40');
+    const preset1=await frame.locator('body').innerText();
+    await page.keyboard.press('2');
+    await expect.poll(async()=>((await frame.locator('body').innerText()).match(/W:\s*(\d+)\s*L:\s*(-?\d+)/)?.slice(1).join(',')||'')).toBe('1500,-600');
+    fs.writeFileSync('data/browser-results/ohif-presets.txt','Preset 1\n'+preset1.slice(-300)+'\nPreset 2\n'+(await frame.locator('body').innerText()).slice(-300));
+    await frame.getByRole('button',{name:'Change layout',exact:true}).click();
+    fs.writeFileSync('data/browser-results/ohif-layout.txt',await frame.locator('body').innerText());
+    fs.writeFileSync('data/browser-results/ohif-layout-controls.json',JSON.stringify(await frame.locator('[data-cy],button').evaluateAll(els=>els.map(el=>({cy:el.getAttribute('data-cy'),text:el.textContent?.slice(0,100),label:el.getAttribute('aria-label')}))),null,2));
+    await frame.locator('[data-cy="MPR"]').click();
+    await expect(frame.locator('canvas:visible')).toHaveCount(3,{timeout:30000});
+    await expect(frame.locator('[data-cy="Crosshairs-btn"]')).toBeEnabled();
+    await frame.locator('[data-cy="Crosshairs-btn"]').click();
+    const mprBefore=await frame.locator('body').innerText();
+    const mprBox=await frame.locator('canvas').first().boundingBox();
+    if(!mprBox)throw new Error('MPR viewport missing');
+    await page.mouse.click(mprBox.x+mprBox.width*.6,mprBox.y+mprBox.height*.6);
+    await expect.poll(()=>frame.locator('body').innerText()).not.toBe(mprBefore);
+    await frame.locator('[data-cy="Length-btn"]').click();
+    await page.mouse.move(mprBox.x+mprBox.width*.4,mprBox.y+mprBox.height*.5);
+    await page.mouse.down();await page.mouse.move(mprBox.x+mprBox.width*.6,mprBox.y+mprBox.height*.5,{steps:8});await page.mouse.up();
+    await expect(frame.getByText(/\d+\.\d+\s*mm/).first()).toBeVisible();
+    fs.writeFileSync('data/browser-results/ohif-mpr-dom.txt',await frame.locator('body').innerText());
+    await page.screenshot({path:'data/browser-results/ohif-mpr.png',fullPage:true});
+    await page.getByRole('button',{name:'원본 HU·거리 계산'}).click();
+    await expect(page.getByText(/원본 HU: -1000.000/)).toBeVisible();
+    await page.getByLabel('끝점 X',{exact:true}).fill('10');
+    await page.getByRole('button',{name:'원본 HU·거리 계산'}).click();
+    await expect(page.getByText('거리: 8.000 mm',{exact:true})).toBeVisible();
+    await page.screenshot({path:'data/browser-results/ohif-native.png',fullPage:true});
+    fs.writeFileSync('data/browser-results/ohif-dom.txt',await frame.locator('body').innerText());
+    expect(external).toEqual([]);
+  }catch(error){
+    await page.screenshot({path:'data/browser-results/ohif-failure.png',fullPage:true});
+    fs.writeFileSync('data/browser-results/ohif-dom.txt',await frame.locator('body').innerText().catch(()=>''));
+    throw error;
+  }
+});

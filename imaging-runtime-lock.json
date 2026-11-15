@@ -1,0 +1,17 @@
+[
+  {
+    "name": "OrthancOHIF.dll",
+    "url": "https://orthanc.uclouvain.be/downloads/windows-64/orthanc-ohif/OrthancOHIF-1.8.dll",
+    "sha256": "E5FDD9EA928A000AB5C75481929A6F79C2FE2FC1CAAED1B2FDAA066512ED15E0"
+  },
+  {
+    "name": "OrthancDicomWeb.dll",
+    "url": "https://orthanc.uclouvain.be/downloads/windows-64/orthanc-dicomweb/OrthancDicomWeb-1.24.dll",
+    "sha256": "D4311CEF4CF63FA580BE30D3177F8F0AE03499EBCFC9E1364A4141291E9E99F9"
+  },
+  {
+    "name": "Orthanc.exe",
+    "url": "https://orthanc.uclouvain.be/downloads/windows-64/orthanc/1.13.0/Orthanc.exe",
+    "sha256": "2D507DF95DCABB479D3931992F5A2607CDE105DBE38B4562F43653E7CE10C424"
+  }
+]
