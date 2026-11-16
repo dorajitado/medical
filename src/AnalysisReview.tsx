@@ -8,6 +8,9 @@ export const modelTitles: Record<ModelId, string> = {
   total: '해부학 분할', lung_nodules: '폐결절 후보', pleural_pericard_effusion: '흉수·심낭삼출',
   monai_nodule:'MONAI 결절 탐지',
 };
+/** A summary links an exact persisted proposal, never a display-list position.
+ * nonce makes repeated requests for the same finding intentional and distinct. */
+export type FindingFocus = { seriesId: string; runId: string; modelId: ModelId; findingId: string; nonce: number };
 export type Structure = {
   label: number; title: string; color: string; voxel_count: number;
   volume_ml: number; touches_boundary: boolean;

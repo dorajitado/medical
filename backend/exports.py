@@ -3,6 +3,7 @@ from html import escape
 from io import BytesIO
 import json
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
 
 
 def json_bytes(summary):
@@ -34,18 +35,48 @@ def pdf_bytes(summary):
         'body':ParagraphStyle('body',fontName='WorkspaceKorean',fontSize=9,leading=15,spaceAfter=7,wordWrap='CJK'),
         'small':ParagraphStyle('small',fontName='WorkspaceKorean',fontSize=7,leading=11,textColor=colors.HexColor('#536777'),spaceAfter=5,wordWrap='CJK'),
     }
+    # Keep an execution title with its provenance line across page boundaries.
+    styles['run_title'] = ParagraphStyle('run_title', parent=styles['body'], keepWithNext=True)
     elements=[]
     def add(text,style='body'):
         elements.append(Paragraph(escape(str(text)).replace('\n','<br/>'),styles[style]))
-    add('흉부 CT 검토 정리본','title')
-    add('병원/사용자 입력 원문 · AI 후보 · 사용자 검토를 구별한 기록입니다. 확정 판독이 아닙니다.')
+    integrated = summary.get('integrated_review')
+    add('CT 종합 검토' if integrated else '흉부 CT 검토 정리본','title')
+    add('CT의 AI 후보·분석 범위·사용자 검토 기록입니다. 병원 소견 대조는 선택입니다. 확정 판독이 아닙니다.' if integrated else '병원/사용자 입력 원문 · AI 후보 · 사용자 검토를 구별한 기록입니다. 확정 판독이 아닙니다.')
     study=summary['study']
     add(f"검사일: {study.get('study_date') or '미기재'} | 검사: {study.get('description') or '미기재'}")
     add(f"정리본 ID: {summary['summary_id']} | 형식: {summary['schema_version']}",'small')
     add('적용 범위와 한계','heading')
     for text in summary['limitations']: add(text)
-    add('입력 원문과 출처','heading')
-    if not summary['report_sources']: add('등록된 입력 원문이 없습니다.')
+    if integrated:
+        add(integrated['headline'], 'heading')
+        status_text = {'available':'선택 범위 분석 완료','processing':'분석 중','partial':'일부 범위만 분석됨','needs_attention':'분석 상태 확인 필요','not_analysed':'분석 전'}
+        created = datetime.fromisoformat(integrated['generated_at']).astimezone(timezone(timedelta(hours=9))).strftime('%Y-%m-%d %H:%M:%S KST')
+        add(f"생성 시각 {created} | {status_text[integrated['status']]} | 중복 가능한 제안 수 {integrated['proposal_count']}")
+        add(f"CT 시리즈 {integrated['series_id']} | 원본 지문 {integrated['source']['digest']}", 'small')
+        for entry in integrated['coverage']:
+            add(f"{entry['title']}: {entry['status_text']} | 제안 {entry['candidate_count'] if entry['candidate_count'] is not None else '확인 전'}")
+            if entry.get('issue'): add(entry['issue'], 'small')
+        for candidate in integrated['candidates']:
+            add(candidate['title'] + ' · ' + candidate['location'], 'heading')
+            add(candidate['explanation']); add(candidate['measurement_text'])
+            # Show the latest user record beside the candidate. The history
+            # appendix below preserves earlier decisions without replacing AI.
+            latest = candidate.get('user_review')
+            labels = {'accepted':'사용자 확인 표시','excluded':'후보 제외 표시','deferred':'확인 보류','not_reviewed':'검토 전'}
+            add('사용자 기록: ' + (labels[latest['decision']] if latest else '검토 전') + ' (진단 확정 아님)', 'small')
+            if candidate['volume_mm3'] is not None: add(f"계산 부피 {candidate['volume_mm3']:.2f} mm³ ({candidate['volume_ml']:.3f} mL)")
+            add(f"위치 근거: {candidate['location_basis']} | 단면 {candidate['slice_number']}/{candidate['slice_count']}", 'small')
+            # Display precision is independent of the exact JSON/LPS source.
+            point = ', '.join(f'{v:.3f}' for v in candidate['representative_lps_mm'])
+            add(f"출처 {candidate['ref']} | 원본 {candidate['source_instance_id']} | LPS(mm) {point}", 'small')
+            method = '원본 촬영 단면의 외곽 최대 너비 계산 (Feret)' if candidate['model_id']=='lung_nodules' else '탐지상자는 위치 표시용이며 병변 장경/부피를 측정하지 않음' if candidate['model_id']=='monai_nodule' else '원본 복셀 수 × 복셀 부피, 종류별 영역 합계'
+            add(f"계측 방법 {method} | 독립 모델 점수 {candidate['score'] if candidate['score'] is not None else '제공 없음'} (악성 확률 아님)", 'small')
+            if candidate['related_proposals']: add('가까운 위치의 다른 제안(동일 병변 미확정): ' + ', '.join(candidate['related_proposals']), 'small')
+        add('선택한 병원 소견 대조', 'heading'); add(integrated['report_context']['text'])
+    else:
+        add('입력 원문과 출처','heading')
+    if not summary['report_sources'] and not integrated: add('등록된 입력 원문이 없습니다.')
     for report in summary['report_sources']:
         add(f"출처: {report['source']} | 입력 시각: {report['created_at']} | 원문 버전: {report['id']}",'small')
         add(report['text'])
@@ -56,12 +87,14 @@ def pdf_bytes(summary):
     add('분석 실행과 상태','heading')
     if not summary['analysis_runs']: add('분석하지 않았습니다. 정상 판정이 아닙니다.')
     for run in summary['analysis_runs']:
-        add(f"{run['model_id']} | {run['status']} | 실행 {run['id']}")
+        entry = next((c for c in integrated['coverage'] if c['model_id']==run['model_id']), None) if integrated else None
+        add(f"{entry['title'] if entry else run['model_id']} | {entry['status_text'] if entry else run['status']} | 실행 {run['id']}", 'run_title')
         add(f"시리즈 {run['series_id']} | 설정 {run['snapshot'].get('configuration',{}).get('version','미기재')}",'small')
         if run.get('error'): add(run['error'])
     comparison=summary.get('comparison')
-    add('소견과 AI 후보의 연결','heading')
-    if not comparison: add('선택한 대조 버전이 없습니다. 일치/정상을 추정하지 않습니다.')
+    if comparison or not integrated: add('소견과 AI 후보의 연결','heading')
+    if not comparison:
+        if not integrated: add('선택한 대조 버전이 없습니다. 일치/정상을 추정하지 않습니다.')
     else:
         payload=comparison['payload']
         add(f"대조 버전 {comparison['id']} | 소견 구조화 버전 {comparison['extraction_id']}",'small')
@@ -101,9 +134,14 @@ def pdf_bytes(summary):
     add('사용자 검토 · 메모 · 진료 질문','heading')
     if not summary['user_reviews']: add('저장된 사용자 판단이 없습니다.')
     for review in summary['user_reviews']:
-        add(f"{review['decision']} | {review['created_at']} | {review['target_type']}")
+        labels = {'accepted':'사용자 확인 표시','excluded':'후보 제외 표시','deferred':'확인 보류','not_reviewed':'검토 전'}
+        add(f"{labels.get(review['decision'],review['decision']) if integrated else review['decision']} | {review['created_at']} UTC | {review['target_type']}")
         add(f"메모: {review['note']}\n질문: {review['question']}")
         add(f"사용자 검토 버전 {review['id']} | 대상 {review['target_id']}",'small')
+    if integrated:
+        add('용어 설명 참고 (개별 CT 판정 근거와 구별)','heading')
+        glossary = {c['kind']:(c['title'],c['glossary_source']) for c in integrated['candidates']}
+        for title, link in glossary.values(): add(f'{title}: {link}', 'small')
     buffer=BytesIO()
     def page(canvas,doc):
         canvas.saveState();canvas.setFont('WorkspaceKorean',7);canvas.setFillColor(colors.HexColor('#536777'))

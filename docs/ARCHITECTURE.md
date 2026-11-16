@@ -1,4 +1,4 @@
-# 1주차 기술 설계
+# 기술 설계와 구현 경계
 
 ## 2주차 확정 및 구현
 
@@ -96,3 +96,23 @@ SQLite의 extraction_versions, comparison_versions, review_versions, summary_ver
 백업은 mutation 잠금·유휴 확인 후 SQLite online backup과 파일 해시 ZIP을 완성/검증한 뒤 공개한다. 복원은 종료된 서비스에서만 CLI로 수행하며 기존 데이터/캐시를 recovery에 이동하고 실패 시 되돌린다. 검사 삭제는 관리 경로 이동 저널→DB commit→파일 정리 순서이고 시작 시 commit 전 중단 이동을 복구한다. commit 후 잠긴 파일은 명시적 재시도 목록에 남는다. OCR와 로컬 문장 worker는 Windows kill-on-close Job으로 소유한다. 운영 자료의 자동 삭제/복원·자동 추론은 수행하지 않았다.
 
 요구사항/보류/검증: docs/verification/remaining.md, docs/LOCAL_DATA_MANAGEMENT.md, docs/CLINICAL_EVALUATION.md. 과거 장의 ‘후속’ 표현은 해당 주차의 상태 기록이며 현재 추적표가 최신 상태다.
+
+## CT 중심 종합 검토 — API 0.7.0
+
+WBS 2·5·7·8·9·10, AI-11/OUT-05/UI-06. 기본 hash 경로는 integrated, 왼쪽 메뉴는 12개다. 소견 입력/대조/문서 메뉴는 선택으로 표시한다. IntegratedReview는 검사/시리즈별로 요청 생명주기를 분리하고 분석 항목·상태·결과·빈 상태를 API에서 구성한다. 분석을 시작하는 명시적 확인/버튼 이전에 자동 추론하지 않는다. 후보는 4개씩 페이지를 나누고 설정/근거는 접어 표시한다.
+
+CTReview는 원본 파일의 크기/수정 시각·DB 메타데이터 지문별로 geometry/SHA 검증을 캐시한다(최대 8시리즈). 변경 시 재검증하며 조회 반복마다 DICOM을 다시 모두 디코딩하지 않는다. batch 생성에는 digest·shape·RAS affine·선택 모델/설정을 고정한다. integrated_batches와 integrated_batch_models를 추가한 schema v5는 기존 표/원문을 유지한다. AnalysisRun 삽입과 모델 슬롯 연결은 같은 트랜잭션이다. 준비 중 중단은 시작 시 interrupted, 미완료 실행은 실패/중단으로 남는다. 단일 GPU 큐에서 네 모델을 순차 처리하고, 실제 worker 진입 전 고정 원본/공간이 바뀌면 실행을 거부한다. 각 실패와 취소를 보존하며 재시도는 새 batch/실행이다.
+
+GET ct-review는 선택 batch의 연결 실행만, batch 미선택 시 모델별 최신 시도만 사용한다. 최신 실패를 과거 성공으로 대체하지 않는다. 원본 digest·정렬 인스턴스·shape/affine, 후보 종류/대표점·LPS/단면·유한 측정·박스 범위를 검사한다. 손상 후보가 있으면 해당 모델을 output_error로 격리한다. 같은 CT의 해부학 mask SHA/shape가 유효할 때만 결절 대표점의 폐엽 추정 위치를 표시한다. 좌표 부호만으로 좌우를 정하지 않는다. 서로 다른 탐지기의 박스 겹침/근거리 관계는 중복 가능 제안으로 연결하며 병변 병합·점수 평균·악성 확률을 생성하지 않는다. MONAI 박스 크기를 분할 장경/부피로 바꾸지 않는다.
+
+병원 대조 include_report는 기본 false다. false이면 원문/문서를 조회·첨부하지 않는다. true인데 소견서가 없어도 유효한 CT 결과다. 저장된 대조를 선택한 경우 같은 검사/시리즈·현재 유효 실행 버전을 검사하고, 다른 버전의 대조는 CT 후보와 합치지 않는다. 원문/문서 전사 출처·AI·사용자 판단을 별도 유지한다. 한국어 설명은 후보 종류와 실제 필드에 바인딩한 규칙이며 자유 LLM 소견 생성은 없다. 일반 용어 참고 링크와 개별 CT 판정 근거도 구별한다.
+
+종합 검토의 영상 버튼은 seriesId/runId/modelId/findingId/nonce를 전달한다. AnalysisPanel이 정확한 실행을 읽은 후 같은 후보를 선택하여 CT 마스크·3D·상세를 연결한다. 자동 선택은 nonce당 한 번 적용해 사용자의 이후 수동 탐색을 덮어쓰지 않는다. 시리즈 변경 시 이전 focus를 해제한다.
+
+CT 저장은 기존 summary_versions에 chest-review-2 고정 스냅샷을 추가한다. CT 후보·분석 범위·실행/원본 출처·해당 사용자 기록을 저장하고, 소견/첨부 문서는 opt-in일 때만 포함한다. 과거 chest-review-1 출력은 유지한다. 한글 PDF는 로컬 글꼴, JSON은 정확한 원본 수치/좌표를 보존한다. 백업의 SQLite 스냅샷에 새 표가 포함되며, 삭제는 모델 연결/batch를 실행보다 먼저 정리한다. 준비 중 batch도 관리 작업 유휴 확인에 포함한다. 검증: docs/verification/ct-review.md.
+
+## 로컬 사용자 매뉴얼 — UI-07
+
+public/user-manual.html을 Vite가 dist로 그대로 복사하고 API의 기존 정적 서비스로 제공한다. App 상단의 사용자 매뉴얼 링크는 별도 창으로 열어 현재 검사/초안을 유지한다. 문서는 자체 스타일/인쇄 동작과 목차만 포함하며 API·저장소·환자 자료를 읽지 않고 외부 폰트/라이브러리를 요청하지 않는다. 파일 직접 열기와 브라우저 인쇄를 지원한다. docs/USER_MANUAL.md와 README는 단일 HTML 본문으로 연결하는 색인이다. 매뉴얼이 존재해도 UI-01 최종 사용자 디자인 인수나 임상 성능 인수를 대신하지 않는다.
+
+매뉴얼 페이지 개선: 단일 HTML의 고정 장 ID를 hash에 매핑하고 한 장만 표시한다. 다른 장은 hidden으로 화면/접근성 트리/인쇄에서 제외한다. 내부 URL 기록으로 직접 열기·새로고침·뒤/앞 이동을 지원한다. PC 목차·페이지 제어는 고정하고 본문만 스크롤하며, 모바일 목차는 토글한다. 전환 시 본문 맨 위와 선택 장 제목으로 초점을 옮긴다. 첫 진입은 URL 강제 변경을 피하여 키보드 순서를 유지한다. 원격 요청·API·저장소 없이 file 직접 열기에서도 작동한다.

@@ -39,6 +39,11 @@ def managed(root,path):
 
 def require_idle(store):
     with store.connect() as c:
+        # Guard the short phase before a batch has committed its first child run.
+        # Older offline workspaces can still be checked before their v5 migration.
+        has_batches=c.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='integrated_batches'").fetchone()
+        if has_batches and c.execute("SELECT 1 FROM integrated_batches WHERE state='preparing'").fetchone():
+            raise ValueError('종합 분석 실행을 준비 중입니다. 준비가 끝나거나 취소된 뒤 실행해 주세요.')
         if c.execute("SELECT 1 FROM analysis_runs WHERE status IN ('queued','running')").fetchone() or c.execute("SELECT 1 FROM import_jobs WHERE status='running'").fetchone() or c.execute("SELECT 1 FROM source_documents WHERE status='running'").fetchone():
             raise ValueError('진행 중인 등록/분석/문서 처리를 완료하거나 취소한 뒤 실행해 주세요.')
 
@@ -202,6 +207,8 @@ def delete_study(store,study_id,confirmation,imaging=None):
                 c.execute(f'DELETE FROM {table} WHERE study_id=?',(study_id,))
             c.execute('DELETE FROM longitudinal_versions WHERE current_study=? OR prior_study=?',(study_id,study_id))
             c.execute('DELETE FROM evaluation_cases WHERE study_id=?',(study_id,))
+            c.execute('DELETE FROM integrated_batch_models WHERE batch_id IN (SELECT b.id FROM integrated_batches b JOIN series s ON s.id=b.series_id WHERE s.study_id=?)',(study_id,))
+            c.execute('DELETE FROM integrated_batches WHERE series_id IN (SELECT id FROM series WHERE study_id=?)',(study_id,))
             c.execute('DELETE FROM analysis_runs WHERE series_id IN (SELECT id FROM series WHERE study_id=?)',(study_id,))
             c.execute('DELETE FROM instances WHERE series_id IN (SELECT id FROM series WHERE study_id=?)',(study_id,))
             c.execute('DELETE FROM series WHERE study_id=?',(study_id,));c.execute('DELETE FROM studies WHERE id=?',(study_id,))

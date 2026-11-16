@@ -20,6 +20,7 @@ from .analysis_runtime import runtime_status
 from .workflow_api import create_workflow_router
 from .maintenance_api import create_maintenance_router
 from .extended_api import create_extended_router
+from .ct_review_api import create_ct_review_router
 
 ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_ORIGINS = {'http://127.0.0.1:5173', 'http://localhost:5173', 'http://127.0.0.1:8000', 'http://localhost:8000'}
@@ -69,11 +70,12 @@ def create_app(data_dir: Path = ROOT / 'data', allowed_origins: set[str] | None 
             yield
         finally:
             await run_in_threadpool(analysis.close)
-    app = FastAPI(title='Chest Review Local API', version='0.6.0', lifespan=lifespan)
+    app = FastAPI(title='Chest Review Local API', version='0.7.0', lifespan=lifespan)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=['127.0.0.1', 'localhost'])
     app.include_router(create_workflow_router(store,analysis))
     app.include_router(create_maintenance_router(store,imaging))
     app.include_router(create_extended_router(store,analysis))
+    app.include_router(create_ct_review_router(store,analysis))
 
     @app.middleware('http')
     async def local_requests(request: Request, call_next):

@@ -177,7 +177,7 @@ export default function ReviewWorkspace({section}:{section?:0|1|2}) {
           {summary&&<>
             <Typography variant="body2">원문 {summary.payload.report_sources.length}개 버전 · 분석 {summary.payload.analysis_runs.length}회 · 사용자 검토 {summary.payload.user_reviews.length}개 버전</Typography>
             <Typography variant="caption">정리본 생성 뒤 수정한 내용은 새 정리본에 반영됩니다. 미분석 항목의 정상 문장은 생성하지 않습니다.</Typography>
-            <Button disabled={disabled} onClick={()=>void perform(async()=>{const value=await request<Data>(`summaries/${summaryId}/polish`,undefined,{},'POST');if(alive.current)setSummaryId(value.id);return value;},'로컬 모델이 원문 문구를 보존한 배치 정리 버전을 저장했습니다.')}>로컬 문장 배치 정리 (원문 보존)</Button>
+            {!summary.payload.integrated_review&&<Button disabled={disabled} onClick={()=>void perform(async()=>{const value=await request<Data>(`summaries/${summaryId}/polish`,undefined,{},'POST');if(alive.current)setSummaryId(value.id);return value;},'로컬 모델이 원문 문구를 보존한 배치 정리 버전을 저장했습니다.')}>로컬 문장 배치 정리 (원문 보존)</Button>}
             {summary.payload.editorial&&<Alert severity="info">{summary.payload.editorial.limitation} {summary.payload.editorial.clauses.map((c:Data)=>c.text).join(' / ')}</Alert>}
             <Stack direction="row" gap={1}><Button component="a" href={`/api/summaries/${summaryId}/export/pdf`} variant="contained">한글 PDF 저장</Button><Button component="a" href={`/api/summaries/${summaryId}/export/json`} variant="outlined">출처 JSON 저장</Button></Stack>
           </>}

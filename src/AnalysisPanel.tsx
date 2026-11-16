@@ -134,12 +134,12 @@ function MaskView({ result }: { result: Result }) {
 }
 
 /** App에서 시리즈 ID를 key로 전달하므로 전환 시 이전 실행/결과/오류가 모두 해제된다. */
-export default function AnalysisPanel({ selection }: { selection: SelectedSeries | null }) {
+export default function AnalysisPanel({ selection, focusRequest }: { selection: SelectedSeries | null; focusRequest?: import('./AnalysisReview').FindingFocus | null }) {
   const { result, publishResult: setResult, selectCandidate, selectedFinding } = useAnalysisReview();
-  const [modelId, setModelId] = useState<ModelId>('total');
+  const [modelId, setModelId] = useState<ModelId>(focusRequest && focusRequest.seriesId === selection?.seriesId ? focusRequest.modelId : 'total');
   const [eligibility, setEligibility] = useState<Eligibility | null>(null);
   const [runs, setRuns] = useState<Run[]>([]);
-  const [runId, setRunId] = useState('');
+  const [runId, setRunId] = useState(focusRequest && focusRequest.seriesId === selection?.seriesId ? focusRequest.runId : '');
   const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -147,6 +147,20 @@ export default function AnalysisPanel({ selection }: { selection: SelectedSeries
   const [refresh, setRefresh] = useState(0);
   const mounted = useRef(true);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  const appliedFocus = useRef<number | null>(null);
+  // Loading the exact requested model/run first prevents an automatic "latest"
+  // result from substituting a different candidate under a summary card.
+  useEffect(() => {
+    if (!focusRequest || focusRequest.seriesId !== selection?.seriesId) return;
+    setResult(null); setModelId(focusRequest.modelId); setRunId(focusRequest.runId);
+    setRuns([]); setError(''); setEligibility(null); setRefresh(v => v + 1);
+  }, [focusRequest?.nonce, selection?.seriesId, setResult]);
+  useEffect(() => {
+    if (!focusRequest || result?.run_id !== focusRequest.runId || appliedFocus.current === focusRequest.nonce) return;
+    if (result.findings?.some(f => f.id === focusRequest.findingId)) {
+      selectCandidate(focusRequest.findingId); appliedFocus.current = focusRequest.nonce;
+    }
+  }, [focusRequest, result, selectCandidate]);
 
   // 종료 시 타이머·요청을 취소한다. 통신 실패 시 완료 상태를 추측하지 않는다.
   useEffect(() => {

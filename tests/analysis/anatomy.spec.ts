@@ -9,7 +9,7 @@ test('real anatomy overlay, windowing, source planes, version isolation and canc
   await page.setViewportSize({ width: 1920, height: 1080 });
   const external: string[] = [];
   page.on('request', r => { const u = new URL(r.url()); if (u.protocol.startsWith('http') && !['127.0.0.1', 'localhost'].includes(u.hostname)) external.push(r.url()); });
-  await page.goto('/');
+  await page.goto('/#viewer');
   await page.getByRole('button', { name: '영상 열기', exact: true }).click();
   await page.getByRole('button',{name:'AI 분석 · 3D',exact:true}).click();
   const canvas = page.getByLabel('원본 CT와 AI 분할 마스크', { exact: true });

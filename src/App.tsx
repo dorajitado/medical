@@ -1,9 +1,9 @@
 // App.tsx — 흉부 CT 검토실 메인 어플리케이션 레이아웃
 // 좌측 메뉴로 작업을 나누고 선택한 기능만 표시한다. 검토 초안과 분석 선택은 메뉴 전환 동안 보존한다.
 
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Box, Button, Chip, Drawer, FormControl, FormControlLabel, IconButton, InputLabel, LinearProgress, List, ListItemButton, ListItemIcon, ListItemText, MenuItem, Paper, Select, Stack, Switch, Typography } from '@mui/material';
-import { AssessmentOutlined, BackupOutlined, CompareArrows, DescriptionOutlined, DocumentScannerOutlined, FactCheckOutlined, FolderOutlined, History, HubOutlined, Menu as MenuIcon, Refresh, ViewInAr, VisibilityOutlined } from '@mui/icons-material';
+import { AssessmentOutlined, BackupOutlined, CompareArrows, DescriptionOutlined, DocumentScannerOutlined, FactCheckOutlined, FolderOutlined, HelpOutline, History, HubOutlined, Menu as MenuIcon, Refresh, ViewInAr, VisibilityOutlined } from '@mui/icons-material';
 import { request, type Health, type Preferences, type Study } from './api';
 import {
   IntakeProvider,
@@ -14,11 +14,12 @@ import {
 } from './IntakePanel';
 import Viewer, { type SelectedSeries } from './Viewer';
 import AnalysisPanel from './AnalysisPanel';
-import { AnalysisReviewProvider } from './AnalysisReview';
+import { AnalysisReviewProvider, type FindingFocus } from './AnalysisReview';
 import CandidateDetail from './CandidateDetail';
 import ReviewWorkspace, { ComparisonOverview } from './ReviewWorkspace';
 import UtilityWorkspace from './UtilityWorkspace';
 import ExtendedWorkspace from './ExtendedWorkspace';
+import IntegratedReview from './IntegratedReview';
 
 // Three.js is local and loaded only when the 3D area is enabled. This keeps
 // initial intake/report rendering independent of a WebGL-capable browser.
@@ -26,6 +27,7 @@ const SurfacePanel = lazy(() => import('./SurfacePanel'));
 
 /** Menu IDs are UI routes only; no patient identifiers enter browser history. */
 const menus = [
+  {id:'integrated',title:'종합 검토',icon:<FactCheckOutlined/>},
   {id:'home',title:'검사 등록',icon:<FolderOutlined/>},
   {id:'viewer',title:'CT 영상 열람',icon:<VisibilityOutlined/>},
   {id:'analysis',title:'AI 분석 · 3D',icon:<ViewInAr/>},
@@ -39,7 +41,7 @@ const menus = [
   {id:'maintenance',title:'백업 · 데이터 관리',icon:<BackupOutlined/>},
 ] as const;
 type MenuId=typeof menus[number]['id'];
-function initialMenu():MenuId { const id=window.location.hash.slice(1);return menus.some(m=>m.id===id)?id as MenuId:'viewer'; }
+function initialMenu():MenuId { const id=window.location.hash.slice(1);return menus.some(m=>m.id===id)?id as MenuId:'integrated'; }
 
 /**
  * 흉부 CT 검토실 최상위 컴포넌트
@@ -66,6 +68,12 @@ export default function App() {
   const [selectedSeries, setSelectedSeries] = useState<SelectedSeries | null>(null);
   // 현재 선택된 검사 ID
   const [selectedStudy, setSelectedStudy] = useState('');
+  const [findingFocus, setFindingFocus] = useState<FindingFocus | null>(null);
+  const focusNonce = useRef(0);
+  // This stable callback preserves Intake's source boundary effect identity.
+  const handleSeriesSelected = useCallback((value: SelectedSeries | null) => {
+    setSelectedSeries(value); if (!value) setFindingFocus(null);
+  }, []);
   // 파일 전송 등 작업 중일 때 검사 변경 잠금 상태
   const [studySelectionLocked, setStudySelectionLocked] = useState(false);
 
@@ -149,10 +157,10 @@ export default function App() {
     <FormControl fullWidth size="small"><InputLabel id="navigation-study-label">작업할 검사</InputLabel><Select labelId="navigation-study-label" label="작업할 검사" value={selectedStudy} onChange={e=>setSelectedStudy(e.target.value)} disabled={!connected||studySelectionLocked}>
       <MenuItem value="">검사 선택</MenuItem>{studies.map(study=><MenuItem key={study.id} value={study.id}>{study.study_date||'날짜 미상'} · {study.description||study.id.slice(0,8)}</MenuItem>)}
     </Select></FormControl>
-    <List aria-label="작업 메뉴" sx={{flex:1,minHeight:0,overflowY:'auto',py:0}}>{menus.map(item=><ListItemButton key={item.id} selected={menu===item.id} aria-current={menu===item.id?'page':undefined} onClick={()=>navigate(item.id)} sx={{borderRadius:1.5,mb:.4,py:.7,transition:'none','&.Mui-selected.Mui-focusVisible':{bgcolor:'primary.dark',color:'primary.contrastText',outline:'2px solid',outlineColor:'primary.light',outlineOffset:1},'&.Mui-selected':{bgcolor:'primary.main',color:'primary.contrastText','&:hover':{bgcolor:'primary.dark'},'& .MuiListItemIcon-root':{color:'inherit'}}}}><ListItemIcon sx={{minWidth:34}}>{item.icon}</ListItemIcon><ListItemText primary={item.title} primaryTypographyProps={{fontSize:13,fontWeight:menu===item.id?700:500}}/></ListItemButton>)}</List>
+    <List aria-label="작업 메뉴" sx={{flex:1,minHeight:0,overflowY:'auto',py:0}}>{menus.map(item=><ListItemButton key={item.id} selected={menu===item.id} aria-current={menu===item.id?'page':undefined} onClick={()=>navigate(item.id)} sx={{borderRadius:1.5,mb:.4,py:.7,transition:'none','&.Mui-selected.Mui-focusVisible':{bgcolor:'primary.dark',color:'primary.contrastText',outline:'2px solid',outlineColor:'primary.light',outlineOffset:1},'&.Mui-selected':{bgcolor:'primary.main',color:'primary.contrastText','&:hover':{bgcolor:'primary.dark'},'& .MuiListItemIcon-root':{color:'inherit'}}}}><ListItemIcon sx={{minWidth:34}}>{item.icon}</ListItemIcon><ListItemText primary={item.title} primaryTypographyProps={{fontSize:13,fontWeight:menu===item.id?700:500}}/>{['reports','compare','documents'].includes(item.id)&&<Chip aria-hidden size="small" label="선택" sx={{height:18,fontSize:10,bgcolor:menu===item.id?'rgba(255,255,255,.18)':undefined,color:menu===item.id?'inherit':'text.secondary'}}/>}</ListItemButton>)}</List>
     <Typography variant="caption" color="text.secondary">분석·문서 처리는 이 PC에서 실행</Typography>
   </Stack>;
-  return <IntakeProvider connected={connected} studies={studies} selected={selectedStudy} onStudySelected={setSelectedStudy} onBusyChange={setStudySelectionLocked} onRefresh={()=>setAttempt(v=>v+1)} onSeriesSelected={setSelectedSeries}>
+  return <IntakeProvider connected={connected} studies={studies} selected={selectedStudy} onStudySelected={setSelectedStudy} onBusyChange={setStudySelectionLocked} onRefresh={()=>setAttempt(v=>v+1)} onSeriesSelected={handleSeriesSelected}>
     <AnalysisReviewProvider seriesId={selectedSeries?.seriesId||''}>
       <Box sx={{display:'flex',height:'100dvh',overflow:'hidden',bgcolor:'background.default'}}>
         <Box component="nav" aria-label="왼쪽 작업 탐색" sx={{display:{xs:'none',md:'block'},width:248,flexShrink:0,bgcolor:'#f8fbfd',borderRight:1,borderColor:'divider'}}>{navigation}</Box>
@@ -163,6 +171,9 @@ export default function App() {
               <Stack direction="row" alignItems="center" spacing={1}><IconButton aria-label="작업 메뉴 열기" onClick={()=>setMobileMenu(true)} sx={{display:{md:'none'}}}><MenuIcon/></IconButton><Box><Typography variant="overline" color="text.secondary">CHEST REVIEW</Typography><Typography variant="h5" component="h1">{active.title}</Typography></Box></Stack>
               <Stack direction="row" gap={1} flexWrap="wrap">
                 <Chip size="small" variant="outlined" color={connected?'success':'default'} label={loading?'연결 확인 중':connected?'로컬 저장소 연결됨':'서버 연결 필요'}/>
+                {/* Local help opens independently so current CT selection and
+                    unsaved editing state stay in the original workspace. */}
+                <Button size="small" startIcon={<HelpOutline/>} href="/user-manual.html" target="_blank" rel="noreferrer" aria-label="사용자 매뉴얼 (새 창)">사용자 매뉴얼</Button>
                 {['analysis','reports','compare'].includes(menu)&&<Button size="small" aria-pressed={focus} onClick={()=>setFocus(v=>!v)}>{focus?'보조 패널 펼치기':'작업 영역 확대'}</Button>}
                 <Button size="small" variant="outlined" startIcon={<Refresh/>} disabled={loading} onClick={()=>setAttempt(v=>v+1)}>새로고침</Button>
               </Stack>
@@ -178,11 +189,12 @@ export default function App() {
                   <ModelStatusCard/>
                 </Box>
               </Box>
+              <Box hidden={menu!=='integrated'}><IntegratedReview key={`ct-${selectedStudy}`} onNavigate={navigate} onFinding={target=>{focusNonce.current+=1;setFindingFocus({...target,nonce:focusNonce.current});navigate('analysis');}}/></Box>
               <Box hidden={!['viewer','analysis'].includes(menu)}><SeriesToolbar/></Box>
               {/* Keep the viewer and analysis state mounted, so menu changes do
                   not reload DICOM or clear the candidate selected for review. */}
               <Box hidden={menu!=='viewer'}><Viewer selection={selectedSeries}/></Box>
-              <Box hidden={menu!=='analysis'}><AnalysisPanel key={selectedSeries?.seriesId||'no-analysis-series'} selection={selectedSeries}/></Box>
+              <Box hidden={menu!=='analysis'}><AnalysisPanel key={selectedSeries?.seriesId||'no-analysis-series'} selection={selectedSeries} focusRequest={findingFocus}/></Box>
               <Box hidden={!reviewMenu}><ReviewWorkspace key={`review-${selectedStudy}`} section={menu==='compare'?1:menu==='summary'?2:0}/></Box>
               <Box hidden={!['documents','maintenance'].includes(menu)}><UtilityWorkspace key={`utility-${selectedStudy}`} section={menu==='maintenance'?'maintenance':'documents'}/></Box>
               <Box hidden={!['models','prior','evaluation'].includes(menu)}><ExtendedWorkspace key={`extended-${selectedStudy}-${selectedSeries?.seriesId||''}`} section={menu==='prior'?'prior':menu==='evaluation'?'evaluation':'models'}/></Box>

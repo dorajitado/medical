@@ -10,7 +10,7 @@ test('real new-model states and linked 3D/CT candidate review', async ({ page })
   const external: string[] = [];
   page.on('request', r => { const u = new URL(r.url()); if (u.protocol.startsWith('http') && !['127.0.0.1', 'localhost'].includes(u.hostname)) external.push(r.url()); });
   const evidence = JSON.parse(fs.readFileSync(path.resolve('data/qa-week4/last-run.json'), 'utf8'));
-  await page.goto('/');
+  await page.goto('/#viewer');
   await page.getByRole('button', { name: '영상 열기', exact: true }).click();
   await page.getByRole('button',{name:'AI 분석 · 3D',exact:true}).click();
   const mesh = page.locator('canvas[aria-label="본인 CT 분할 기반 3D"]');

@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>흉부 CT 검토실 — 사용자 매뉴얼</title>
+  <!-- Standalone local documentation: no API, patient data, remote fonts,
+       images or libraries. Vite copies this file unchanged into dist/. -->
+  <style>
+    :root{font-family:"Malgun Gothic","맑은 고딕",sans-serif;color:#17354d;background:#f0f4f8;line-height:1.8;font-size:16px}
+    *{box-sizing:border-box}body{margin:0;height:100dvh;display:flex;flex-direction:column;overflow:hidden}a{color:#205b91;text-underline-offset:3px}a:hover{text-decoration-thickness:2px}
+    a:focus-visible,button:focus-visible{outline:3px solid #bf6500;outline-offset:4px}
+    .skip{position:absolute;top:-100px;left:16px;background:white;padding:8px;z-index:1}.skip:focus{top:8px}
+    header{padding:16px max(24px,calc((100vw - 1320px)/2));background:#183b55;color:#fff;flex-shrink:0}
+    header p{color:#d5e4f1;margin:4px 0;font-size:13px}h1{font-size:clamp(21px,3vw,28px);line-height:1.4;margin:0 0 6px;word-break:keep-all}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.actions a,button{font:inherit;background:#fff;color:#183b55;border:1px solid #9eb5c9;border-radius:8px;padding:8px 16px;cursor:pointer;text-decoration:none}
+    button:disabled{opacity:.5;cursor:default}.layout{width:100%;max-width:1368px;margin:0 auto;display:grid;grid-template-columns:238px minmax(0,1fr);gap:24px;padding:20px 24px;flex:1;min-height:0}
+    nav{background:#fff;border:1px solid #cddae6;border-radius:12px;padding:18px;min-height:0;overflow:auto}
+    nav strong{display:block;margin-bottom:8px}nav a{display:block;padding:5px 0;font-size:14px}
+    nav a[aria-current="page"]{color:#fff;background:#205b91;border-radius:6px;padding-left:8px;padding-right:8px;text-decoration:none;font-weight:700}
+    main{min-width:0;min-height:0;display:flex;flex-direction:column}.chapter-content{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;background:#fff;border:1px solid #cddae6;border-radius:12px}
+    section{padding:28px;scroll-margin-top:20px}section[hidden]{display:none}
+    .reader-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0 0;flex-shrink:0}.reader-controls button{min-width:90px}.reader-controls span{font-size:14px;font-variant-numeric:tabular-nums}
+    #toc-toggle{display:none}
+    h2{font-size:23px;line-height:1.5;margin:0 0 16px}h3{font-size:18px;margin:24px 0 8px}p{margin:10px 0}
+    li{margin:9px 0}ol,ul{padding-left:24px}.note{background:#edf5fc;border-left:4px solid #4278a7;padding:12px 16px;margin:16px 0}.caution{background:#fff7e8;border-left-color:#ac6800}
+    .flow{font-size:18px;font-weight:700;color:#205b91}.tag{font-size:13px;border:1px solid #bdcedc;border-radius:5px;padding:1px 6px;white-space:nowrap}
+    table{width:100%;border-collapse:collapse;font-size:14px;table-layout:fixed}th,td{text-align:left;vertical-align:top;border-bottom:1px solid #d8e3ed;padding:12px 10px;overflow-wrap:anywhere}th{background:#edf3f8}th:first-child{width:29%}
+    .table-scroll{overflow-x:auto}code,kbd{background:#edf2f7;padding:2px 5px;border-radius:4px;font-family:Consolas,monospace;font-size:.9em;overflow-wrap:anywhere}footer{text-align:center;color:#526c81;padding:0 24px 8px;font-size:12px;flex-shrink:0}
+    @media(max-width:800px){.layout{display:flex;flex-direction:column;padding:12px 16px;gap:12px}nav{display:none;flex-shrink:0;max-height:35dvh;padding:12px}nav.toc-open{display:block}nav .links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}main{flex:1}section{padding:20px}header{padding:12px 16px}.header-detail{display:none}.actions{margin-top:8px;gap:8px}.actions a,.actions button{font-size:13px;padding:6px 10px}#toc-toggle{display:inline-block}th,td{padding:10px 7px}footer{display:none}}
+    /* Print the same source as a readable guide. Navigation/actions are not
+       printed; headings/short rows stay together without fixing page heights. */
+    @page{size:A4;margin:16mm}
+    @media print{body,:root{background:#fff;color:#111;font-size:10pt}body{height:auto;display:block;overflow:visible}header{background:#fff;color:#111;padding:0 0 16px}header p{color:#333}.layout{display:block;padding:0;max-width:none}nav,.actions,.skip,footer,.reader-controls{display:none!important}main{display:block}.chapter-content{overflow:visible;border:0;border-radius:0}section{padding:12px 0;margin:0}h2{font-size:16pt;border-top:1px solid #aaa;padding-top:12px}h3{font-size:12pt}h2,h3{break-after:avoid}tr,.note{break-inside:avoid}a{color:inherit}table{font-size:9pt}.table-scroll{overflow:visible}}
+  </style>
+</head>
+<body>
+<a class="skip" href="#quickstart">본문 바로가기</a>
+<header>
+  <p class="header-detail">CHEST REVIEW · LOCAL USER GUIDE</p>
+  <h1>흉부 CT 검토실 사용자 매뉴얼</h1>
+  <p class="header-detail">기준: API 0.7.0 · 한 번에 한 페이지씩 읽는 사용 안내 · 2026-11-16</p>
+  <div class="actions"><button id="toc-toggle" type="button" aria-expanded="false" aria-controls="manual-toc">목차</button><a href="http://127.0.0.1:8000/" target="_blank" rel="noreferrer">앱 열기 (새 창)</a><button id="print-manual" type="button">현재 페이지 인쇄 / PDF</button></div>
+</header>
+<div class="layout">
+<nav id="manual-toc" aria-label="매뉴얼 목차"><strong>찾아보기</strong><div class="links">
+  <a href="#quickstart">1. 처음 사용하는 순서</a><a href="#start">2. 앱 실행과 준비</a>
+  <a href="#import">3. CT 등록과 선택</a><a href="#analysis">4. 종합 분석 실행</a>
+  <a href="#results">5. 결과를 읽는 방법</a><a href="#evidence">6. 원본 CT·3D 확인</a>
+  <a href="#save">7. 검토 기록·파일 저장</a><a href="#report">8. 병원 소견 대조 (선택)</a>
+  <a href="#menus">9. 메뉴별 용도</a><a href="#troubleshooting">10. 자주 막히는 부분</a>
+  <a href="#data">11. 백업·삭제·복원</a><a href="#end">12. 종료와 다음 실행</a>
+</div></nav>
+<main id="manual-main">
+<div class="chapter-content" id="chapter-content">
+<section id="quickstart">
+  <h2>1. 처음 사용하는 순서</h2>
+  <p class="flow">CT 등록 → 종합 분석 → 후보 확인 → 근거 영상 → 검토 기록 저장</p>
+  <ol>
+    <li>프로젝트 폴더의 <strong>start.cmd</strong>를 실행하고 <a href="http://127.0.0.1:8000/" target="_blank" rel="noreferrer">로컬 앱</a>을 엽니다.</li>
+    <li>왼쪽 <strong>검사 등록</strong> → <strong>CT 폴더 선택</strong>으로 병원에서 받은 DICOM 폴더를 선택합니다. 파일 선택이 끝나면 등록이 시작됩니다.</li>
+    <li>등록이 끝나면 왼쪽 위 <strong>작업할 검사</strong>에서 이번에 볼 검사를 고릅니다.</li>
+    <li><strong>종합 검토</strong>에서 CT 시리즈를 고르고 <strong>이번 CT 분석 시작</strong>을 펼칩니다.</li>
+    <li>실행할 항목과 사용 가능한 범위를 읽고 <strong>선택한 CT 시리즈와 분석 범위를 확인했습니다</strong>를 체크한 뒤 <strong>종합 분석 실행</strong>을 누릅니다.</li>
+    <li>진행 막대와 결과를 확인합니다. 후보 카드의 <strong>CT에서 위치 확인</strong>을 누르면 해당 실행의 CT·3D·후보 상세로 이동합니다.</li>
+    <li><strong>종합 검토</strong>로 돌아와 필요한 메모를 저장하고 <strong>CT 종합 검토 저장</strong> → <strong>CT 검토 PDF 저장</strong>을 누릅니다.</li>
+  </ol>
+  <div class="note"><strong>병원 소견서는 없어도 됩니다.</strong> 등록·분석·영상 확인·저장까지 CT만으로 사용할 수 있습니다. 소견과 대조하고 싶을 때만 선택 기능을 켭니다.</div>
+  <div class="note caution">화면은 AI가 제안한 확인 후보를 보여줍니다. 현재 진료 적용 성능은 검증 전입니다. 분석 완료·100%·후보 없음은 정상 판정이나 확정 진단을 뜻하지 않습니다.</div>
+</section>
+<section id="start" hidden>
+  <h2>2. 앱 실행과 준비</h2>
+  <p>한 번 설치가 끝난 PC라면 <strong>start.cmd</strong>를 실행하고 브라우저에서 <code>http://127.0.0.1:8000</code>을 엽니다. 실행 창을 유지해 주세요. Docker는 사용하지 않습니다.</p>
+  <ul>
+    <li>상단에 <strong>로컬 저장소 연결됨</strong>이 표시되는지 확인합니다.</li>
+    <li>새 화면이 보이지 않으면 <kbd>Ctrl</kbd>+<kbd>F5</kbd>로 다시 불러옵니다.</li>
+    <li>준비물은 DICOM 원본 파일입니다. CT 사진을 캡처한 PNG/JPEG나 PDF만으로 영상 분석을 시작할 수는 없습니다.</li>
+    <li>처음 설치한 PC에서는 영상 엔진·AI 모델 설치가 별도 필요합니다. 설치 명령은 프로젝트 README에 있습니다. <strong>검사 등록</strong>의 <strong>분석 모델 준비 상태</strong>와 종합 검토의 각 항목 사유를 확인합니다.</li>
+  </ul>
+  <p>이 매뉴얼은 앱 상단 <strong>사용자 매뉴얼</strong>에서 새 창으로 열립니다. 목차 또는 아래 <strong>이전 / 다음</strong>으로 페이지를 이동합니다. <kbd>Ctrl</kbd>+<kbd>F</kbd>는 현재 표시된 페이지에서 검색합니다. 출력은 상단 <strong>현재 페이지 인쇄 / PDF</strong>를 사용하세요. 선택한 페이지를 출력하며 PDF 저장은 브라우저 인쇄 화면의 대상에서 선택합니다.</p>
+</section>
+<section id="import" hidden>
+  <h2>3. CT 등록과 선택</h2>
+  <h3>폴더를 등록하기</h3>
+  <ol>
+    <li><strong>검사 등록</strong>에서 <strong>CT 폴더 선택</strong>을 누릅니다. 하위 폴더에 DICOM이 있어도 파일을 수집합니다. 일부 파일만 넣을 때는 <strong>파일 선택</strong>을 사용합니다.</li>
+    <li>브라우저가 폴더 업로드 확인을 표시하면 선택한 폴더가 맞는지 확인합니다. 파일은 본인 PC의 로컬 서버로 전달됩니다.</li>
+    <li>등록·중복·제외·실패 수와 사유를 확인합니다. 중복 파일은 다시 추가되지 않습니다. 등록된 파일이 있다는 것만으로 영상/모델 적합성이 확인된 것은 아닙니다.</li>
+    <li>중지하려면 <strong>남은 등록 취소</strong>를 누릅니다. 이미 등록된 파일은 남아 있습니다.</li>
+  </ol>
+  <h3>검사와 시리즈의 차이</h3>
+  <p><strong>검사</strong>는 한 촬영 묶음, <strong>시리즈</strong>는 그 안의 영상 묶음입니다. 같은 검사에도 서로 다른 재구성/절편 두께의 시리즈가 있을 수 있습니다. 왼쪽 <strong>작업할 검사</strong>를 선택한 다음 종합 검토에서 분석할 시리즈를 고릅니다. 자료가 여러 개면 자동으로 특정 시리즈를 정답으로 고르지 않습니다.</p>
+  <p><strong>원본 CT 먼저 보기</strong>로 선택한 입력을 살펴볼 수 있습니다. 현재 초기 지원은 일정한 간격/방향의 비압축 단일 프레임 CT입니다. 압축·Enhanced/다중프레임·공간정보 누락·기울어진 geometry 등은 제외/거부될 수 있습니다. 지원 사유를 확인하고 억지로 다른 파일 형식으로 바꾸지 마세요.</p>
+  <div class="note">조영제를 사용했다는 사실만으로 폐색전 검사용 CTPA가 확인되거나 모든 흉부 소견이 분석되는 것은 아닙니다. 화면의 지원 범위를 확인하세요.</div>
+</section>
+<section id="analysis" hidden>
+  <h2>4. 종합 분석 실행</h2>
+  <p><strong>종합 검토 → 이번 CT 분석 시작</strong>을 펼치면 실행 항목이 나옵니다. 기존 완료 결과가 있으면 이 영역은 접혀 있을 수 있습니다.</p>
+  <div class="table-scroll"><table><thead><tr><th>항목</th><th>앱에서 하는 일</th></tr></thead><tbody>
+    <tr><td>구조와 위치 파악</td><td>폐엽·기관·심장·대동맥의 구조를 나눕니다. 후보의 위치를 설명하는 데 사용하며 질환 탐지 건수로 세지 않습니다.</td></tr>
+    <tr><td>결절 의심 부위 찾기</td><td>결절로 분류된 후보 영역과 계산 가능한 너비·부피를 제안합니다.</td></tr>
+    <tr><td>폐·심장 주위 액체 후보 찾기</td><td>흉수/심낭삼출로 분류된 영역과 종류별 합산 부피를 제안합니다.</td></tr>
+    <tr><td>결절 의심 부위 추가 확인</td><td>독립 MONAI 모델의 위치 상자를 제공합니다. 분할 장경/부피는 제공하지 않습니다.</td></tr>
+  </tbody></table></div>
+  <p>준비되지 않았거나 입력 조건이 맞지 않는 항목에는 사유가 표시됩니다. <strong>실행 준비 다시 확인</strong>으로 재조회할 수 있습니다. 실행할 항목을 고르고 확인 체크 후 <strong>종합 분석 실행</strong>을 한 번 누릅니다. 모델은 GPU에서 순서대로 실행됩니다.</p>
+  <h3>퍼센트가 뜻하는 것</h3>
+  <p><strong>실행 완료 항목 수 ÷ 선택한 항목 수</strong>입니다. 네 항목을 선택했다면 한 항목 완료 시 25%, 전부 완료 시 100%입니다. 한 모델을 처리하는 동안 퍼센트가 그대로일 수 있습니다. 각 모델 내부 계산량/남은 시간의 추정치가 아닙니다.</p>
+  <ul>
+    <li><strong>순서 대기 / 처리 중</strong>: 아직 완료하지 않은 항목입니다. 모델별 상태를 함께 보세요.</li>
+    <li><strong>실패 / 취소</strong>: 완료 비율에 포함하지 않습니다. 네 개 중 세 개 완료·한 개 실패면 75%로 남습니다.</li>
+    <li><strong>100%</strong>: 선택한 실행 항목이 끝났다는 뜻입니다. 결과의 의학적 정확도나 건강 상태를 뜻하지 않습니다.</li>
+  </ul>
+  <p>중지하려면 <strong>진행 중인 종합 분석 취소</strong>를 누릅니다. 완료된 결과는 보존되고 대기/진행 작업은 취소 상태로 남습니다. 다시 실행하면 새 버전이 생성됩니다. <strong>이번 CT 분석 시작</strong> 안의 실행 선택 목록에서 과거 종합 실행이나 모델별 최신 시도를 확인할 수 있습니다.</p>
+</section>
+<section id="results" hidden>
+  <h2>5. 결과를 읽는 방법</h2>
+  <p>먼저 큰 제목과 <strong>결절 후보 / 폐 주위 액체 후보 / 심장 주위 액체 후보</strong> 카드를 봅니다. <strong>분석한 범위와 아직 확인하지 않은 항목</strong>을 펼쳐 완료·실패·제외·미지원 범위를 확인합니다.</p>
+  <div class="table-scroll"><table><thead><tr><th>표시</th><th>읽는 방법</th></tr></thead><tbody>
+    <tr><td>AI 후보 제안 수</td><td>모델이 표시한 제안 수입니다. 서로 다른 모델이 같은 부위를 제안할 수 있어 확정 병변 수와 다릅니다.</td></tr>
+    <tr><td>왼쪽/오른쪽 폐엽 위치</td><td>같은 CT의 해부학 분할에서 대표점 위치를 추정한 것입니다. 위치 지도를 확인할 수 없으면 세부 위치 확인 전으로 표시합니다.</td></tr>
+    <tr><td>최대 너비 / 부피</td><td>분류된 마스크에서 계산한 값입니다. 너비는 원본 촬영 단면의 계산값이고, 임상 RECIST 측정을 뜻하지 않습니다. 액체 영역은 종류별 합계입니다.</td></tr>
+    <tr><td>위치 상자만 제공</td><td>탐지상자를 표시하는 모델입니다. 상자의 폭/부피를 실제 병변 크기로 읽지 않습니다.</td></tr>
+    <tr><td>모델 점수</td><td>해당 모델의 독립 점수입니다. 악성 확률이 아니며 서로 다른 모델 점수를 평균하지 않습니다.</td></tr>
+    <tr><td>표시된 후보 없음</td><td>실행한 분석 범위에서 제안이 없다는 뜻입니다. 정상·질환 배제를 뜻하지 않습니다.</td></tr>
+    <tr><td>일부 범위만 분석됨 / 상태 확인 필요</td><td>완료하지 못한 항목과 사유를 확인합니다. 실패·취소·손상된 출처를 정상 결과로 바꾸지 않습니다.</td></tr>
+  </tbody></table></div>
+  <p>후보 카드는 4개씩 표시됩니다. 종류 선택과 페이지 버튼으로 다른 후보를 봅니다. <strong>가까운 위치의 다른 모델 제안</strong> 표시는 중복 가능성 안내이며 같은 병변이라고 확정한 것이 아닙니다. <strong>측정·출처와 검토 기록</strong>을 펼치면 계산 방법·원본 단면·실행/후보 식별·좌표를 볼 수 있습니다.</p>
+  <div class="note caution">현재 종합 검토는 위치용 구조·결절·흉수/심낭삼출 후보 범위입니다. 폐색전·기흉·폐실질 이상·림프절 등 모든 흉부 이상을 평가하는 화면이 아닙니다.</div>
+</section>
+<section id="evidence" hidden>
+  <h2>6. 원본 CT·3D 확인</h2>
+  <ol>
+    <li>후보 카드의 <strong>CT에서 위치 확인</strong>을 누릅니다.</li>
+    <li><strong>AI 분석 · 3D</strong>로 이동하면 해당 실행과 후보가 선택되고 CT 마스크 뷰·3D·후보 상세가 연결됩니다.</li>
+    <li>대표 절편과 주변 절편을 살펴봅니다. 3D는 선택한 실행의 실제 분할 또는 탐지상자를 표시합니다.</li>
+    <li>목록이나 3D에서 다른 후보를 선택할 수도 있습니다. 오른쪽 영역이 접혀 있으면 <strong>보조 패널 펼치기</strong>와 <strong>입체 구조 영역</strong>을 확인합니다.</li>
+  </ol>
+  <h3>일반 CT 열람</h3>
+  <p><strong>CT 영상 열람</strong>에서 시리즈를 선택하고 <strong>영상 열기</strong>를 누릅니다. OHIF 안내를 닫은 뒤 마우스 휠로 절편을 이동합니다. Zoom/Pan/Window Level 도구로 확대·이동·명암을 조절합니다. 영상에 초점을 두고 숫자 <kbd>1</kbd>은 연조직 창, <kbd>2</kbd>는 폐창입니다. MPR은 뷰어의 레이아웃 메뉴에서 선택하며 최소 3절편이 필요합니다.</p>
+  <p>OHIF와 AI 마스크 뷰의 절편/창 설정은 독립적입니다. 종합 검토의 후보 위치 연결은 AI 마스크 뷰·3D·상세에 적용됩니다. OHIF가 자동으로 같은 단면으로 이동한다고 가정하지 마세요.</p>
+  <p>좁은 화면에서는 오른쪽 패널이 아래에 배치됩니다. 필요하면 작업 영역 확대 또는 뷰어의 별도 창 열기를 사용합니다.</p>
+</section>
+<section id="save" hidden>
+  <h2>7. 검토 기록·파일 저장</h2>
+  <h3>후보별로 메모 남기기</h3>
+  <p>후보의 <strong>측정·출처와 검토 기록</strong>을 펼쳐 사용자 상태와 <strong>CT 후보 검토 메모</strong>를 입력하고 <strong>후보 검토 기록 저장</strong>을 누릅니다. 검토 전·사용자 확인 표시·확인 보류·후보 제외 표시는 사용자 기록이며 AI 원본이나 진단을 변경하지 않습니다. 입력만 하고 저장하지 않은 메모는 창을 닫으면 잃을 수 있습니다.</p>
+  <h3>종합 검토를 고정된 버전으로 보관하기</h3>
+  <ol>
+    <li>원하는 분석 실행과 후보 검토 상태가 맞는지 확인합니다.</li>
+    <li>소견서를 포함하지 않으려면 <strong>병원 소견과도 대조하기 (선택)</strong>를 꺼 둡니다.</li>
+    <li><strong>CT 종합 검토 저장</strong>을 누릅니다. 그 시점의 후보·범위·사용자 검토·출처가 저장됩니다.</li>
+    <li>저장 기록 목록에서 원하는 버전을 선택한 뒤 <strong>CT 검토 PDF 저장</strong> 또는 <strong>CT 검토 JSON 저장</strong>을 누릅니다.</li>
+  </ol>
+  <p>PDF는 읽고 공유할 검토 기록, JSON은 수치·좌표·버전·출처 관계를 보존하는 파일입니다. 이후 메모나 분석 결과를 바꿔도 이미 저장한 버전은 바뀌지 않습니다. 최신 내용을 반영하려면 다시 저장해 새 버전을 만드세요. 이 내보내기 파일은 전체 작업 공간 백업과 다릅니다.</p>
+</section>
+<section id="report" hidden>
+  <h2>8. 병원 소견 대조 <span class="tag">선택</span></h2>
+  <p>이 절은 소견서가 있고 대조하고 싶을 때만 진행합니다. 종합 검토의 대조 스위치는 기본 꺼짐입니다. 켰는데 자료가 없어도 CT 분석/저장은 사용할 수 있습니다.</p>
+  <ol>
+    <li><strong>판독소견 · 구조화</strong>에서 오른쪽 입력 영역의 출처를 고르고 <strong>직접 입력한 내용</strong>을 채운 뒤 <strong>선택 검사에 새 버전 저장</strong>을 누릅니다. 병원 소견 전사와 직접 작성·개인 메모를 구별합니다.</li>
+    <li>구조화할 소견서 버전을 선택하고 <strong>원문에서 소견 구조화</strong>를 누릅니다.</li>
+    <li>원문과 추출 항목을 대조해 부정·의심·과거 표현·위치·단위를 확인합니다. 필요하면 정정하고 <strong>정정 내용을 새 버전으로 저장</strong>합니다.</li>
+    <li><strong>소견 · AI 대조</strong>에서 구조화 버전과 같은 검사/시리즈의 완료된 실행을 선택하고 <strong>선택 소견과 AI 후보 대조</strong>를 누릅니다. 연결은 원본 위치를 확인한 뒤 검토해 저장합니다.</li>
+    <li><strong>종합 검토</strong>로 돌아와 <strong>병원 소견과도 대조하기 (선택)</strong>를 켜고 저장한 대조 버전을 선택합니다.</li>
+  </ol>
+  <p>현재 분석과 실행 버전이 다른 대조는 자동으로 합쳐지지 않습니다. 소견이 있다는 것과 연결 대조가 선택됐다는 것도 다릅니다. PDF/JSON에 소견을 넣을지 스위치와 현재 대조 상태를 확인한 뒤 새 검토 기록을 저장하세요.</p>
+  <p>문서 파일이 있다면 <strong>문서 · OCR → 문서 선택 (32 MiB 이하)</strong>를 사용합니다. PDF/PNG/JPEG를 지원합니다. 추출 텍스트를 원문과 비교·수정하고 확인한 뒤 <strong>문서 출처로 소견 저장</strong>해야 합니다. 추출 실패가 원문 없음/정상 소견을 뜻하지 않습니다.</p>
+</section>
+<section id="menus" hidden>
+  <h2>9. 메뉴별 용도</h2>
+  <div class="table-scroll"><table><thead><tr><th>왼쪽 메뉴</th><th>사용할 때</th></tr></thead><tbody>
+    <tr><td>종합 검토</td><td>CT만으로 일괄 실행·쉬운 결과·근거 이동·검토 저장을 할 때. 기본 시작 화면입니다.</td></tr>
+    <tr><td>검사 등록</td><td>DICOM 폴더/파일을 넣고 등록 내역·모델 준비 상태를 볼 때.</td></tr>
+    <tr><td>CT 영상 열람</td><td>원본 CT, MPR, 거리/HU를 확인할 때.</td></tr>
+    <tr><td>AI 분석 · 3D</td><td>개별 모델 실행/이력과 마스크·탐지상자·후보/3D 근거를 볼 때.</td></tr>
+    <tr><td>판독소견 · 구조화</td><td>선택 기능. 소견을 입력하고 구조화 결과를 원문과 대조·정정할 때.</td></tr>
+    <tr><td>소견 · AI 대조</td><td>선택 기능. 소견 항목과 AI 후보의 연결을 검토할 때.</td></tr>
+    <tr><td>검토 · 정리본</td><td>사용자 판단·진료 질문·기존 소견 중심 정리본을 관리할 때. CT 중심 저장은 종합 검토에서 할 수 있습니다.</td></tr>
+    <tr><td>문서 · OCR</td><td>선택 기능. 문서 원본과 추출/수정한 전사 내용을 구별해 보관할 때.</td></tr>
+    <tr><td>독립 모델 비교</td><td>같은 CT의 두 결절 모델 제안을 나란히 검토하고 연결할 때. 점수를 합쳐 진단하지 않습니다.</td></tr>
+    <tr><td>이전 CT 비교</td><td>이전 검사와 수동 기준점/측정을 비교할 때. 현재 부분 구현으로 자동 전체 영상 정합·성장 판정을 제공하지 않습니다.</td></tr>
+    <tr><td>평가 · 지원 범위</td><td>모듈 지원/미지원과 평가 준비 상태를 확인할 때. 임상 성능 통과 여부와 구별합니다.</td></tr>
+    <tr><td>백업 · 데이터 관리</td><td>전체 작업 공간 백업과 삭제 범위를 확인할 때.</td></tr>
+  </tbody></table></div>
+  <p>좁은 화면에서는 상단 메뉴 버튼으로 왼쪽 메뉴를 엽니다. 메뉴 이동 중 검사·열린 시리즈·작성 중인 편집 상태를 보존하지만, 다른 검사/시리즈로 변경하면 해당 자료의 상태로 바뀝니다. 중요한 입력은 이동/종료 전에 저장하세요.</p>
+</section>
+<section id="troubleshooting" hidden>
+  <h2>10. 자주 막히는 부분</h2>
+  <div class="table-scroll"><table><thead><tr><th>상황</th><th>확인할 것</th></tr></thead><tbody>
+    <tr><td>서버 연결 필요</td><td>start.cmd 실행 창이 유지되는지 확인하고 앱의 새로고침/재시도를 누릅니다. 브라우저 주소가 127.0.0.1:8000인지 확인합니다.</td></tr>
+    <tr><td>등록한 CT가 안 보임</td><td>등록·제외·실패 수와 사유, 왼쪽 작업할 검사 선택을 확인합니다. 등록 메뉴와 종합 검토는 용도가 다릅니다.</td></tr>
+    <tr><td>종합 분석 실행 버튼이 비활성</td><td>검사/시리즈 선택, 실행 가능한 항목 선택, 범위 확인 체크를 확인합니다. 이미 처리 중이거나 모델/입력이 미지원이면 사유를 확인합니다.</td></tr>
+    <tr><td>퍼센트가 한동안 그대로</td><td>각 모델 하나가 끝날 때 올라갑니다. 처리 중인 항목을 확인합니다. 분석 중에는 절전/종료를 피하고 실패 표시가 있으면 사유를 읽습니다.</td></tr>
+    <tr><td>분석 실패 / 메모리 부족</td><td>실패 사유와 모델 준비·입력 조건을 확인합니다. GPU를 많이 쓰는 다른 작업을 정리한 뒤 필요한 항목만 새 실행할 수 있습니다. 실패한 결과는 정상으로 읽지 않습니다.</td></tr>
+    <tr><td>원본 영상/3D가 안 열림</td><td>선택 시리즈와 영상 서비스 상태를 확인합니다. 3D는 브라우저 WebGL/표시 한도에 영향을 받을 수 있습니다. CT 마스크·상세 오류도 별도로 확인합니다.</td></tr>
+    <tr><td>결과와 소견 대조가 안 맞음</td><td>같은 검사/시리즈인지, 대조가 현재 실행 버전으로 저장됐는지 확인합니다. 자동 연결 후보는 사용자 확인과 다릅니다.</td></tr>
+    <tr><td>메모 수정 후 PDF가 그대로</td><td>기존 PDF/기록은 저장 시점 버전입니다. 메모 저장 후 CT 종합 검토를 다시 저장하고 새 버전을 내려받습니다.</td></tr>
+    <tr><td>소견서가 없음</td><td>병원 대조를 꺼 둔 채 CT만으로 진행하면 됩니다.</td></tr>
+  </tbody></table></div>
+</section>
+<section id="data" hidden>
+  <h2>11. 백업·삭제·복원</h2>
+  <h3>백업</h3>
+  <p>등록/분석/문서 처리가 끝난 뒤 <strong>백업 · 데이터 관리 → 현재 작업 공간 백업</strong>을 누릅니다. 생성된 백업을 다운로드하고 <strong>검증·복원 안내</strong>로 확인합니다. DICOM 앱 복사본·분석/문서·소견/검토 기록을 포함하며 모델 런타임·영상 캐시 등은 제외합니다. 백업에도 의료정보가 포함됩니다.</p>
+  <h3>삭제</h3>
+  <p><strong>선택 검사 삭제 범위 확인</strong>으로 대상과 개수를 읽고, 화면의 삭제 확인 문구를 입력해야 <strong>확인한 검사 삭제 실행</strong>이 활성화됩니다. 앱 관리 복사본/기록을 삭제하며 처음 선택한 외부 CT 폴더·기존 백업은 유지합니다. 불필요한 시험 삭제를 하지 말고 먼저 백업하세요.</p>
+  <h3>복원</h3>
+  <p>실행 중인 앱에서 즉시 복원하는 버튼은 없습니다. 백업의 안내를 읽고 앱·영상 서비스를 종료한 뒤 프로젝트의 <strong>restore-backup.ps1</strong>을 사용합니다. 확인 문구와 백업 ID가 필요합니다. 구체적 절차는 프로젝트 <strong>docs/LOCAL_DATA_MANAGEMENT.md</strong>의 오프라인 복원 항목을 따르세요.</p>
+</section>
+<section id="end" hidden>
+  <h2>12. 종료와 다음 실행</h2>
+  <ol>
+    <li>입력한 검토/메모를 저장하고 필요하면 CT 종합 검토 버전과 백업을 만듭니다.</li>
+    <li>등록·분석·문서 처리가 끝났는지 확인합니다. 중지할 작업은 해당 화면에서 취소합니다.</li>
+    <li>앱 실행 터미널에서 <kbd>Ctrl</kbd>+<kbd>C</kbd>로 서버를 종료합니다. 브라우저 탭만 닫으면 서버가 계속 실행될 수 있습니다.</li>
+    <li>다음에 <strong>start.cmd</strong>로 실행하고 작업할 검사/시리즈와 저장한 실행/검토 버전을 다시 고릅니다.</li>
+  </ol>
+  <p>서버 중단 중이던 분석은 다음 실행에서 실패/중단으로 표시됩니다. 이전 완료 결과를 덮어쓰지 않으며 필요한 경우 새 분석을 시작합니다. 저장된 원문·AI 출력·사용자 판단은 서로 구별해 보존됩니다.</p>
+  <p><a href="#quickstart">처음 사용하는 순서로 돌아가기</a></p>
+</section>
+</div>
+<div class="reader-controls" aria-label="매뉴얼 페이지 이동">
+  <button id="previous-page" type="button" aria-label="이전 페이지" disabled>← 이전</button>
+  <span id="page-indicator" role="status" aria-live="polite" aria-atomic="true">1 / 12 페이지</span>
+  <button id="next-page" type="button" aria-label="다음 페이지">다음 →</button>
+</div>
+</main></div>
+<footer>사용법 기준 문서 · 환자 자료를 포함하지 않는 로컬 매뉴얼 · 화면이 바뀌면 같은 버전의 매뉴얼을 확인하세요.</footer>
+<script>
+  // A bounded set of local chapter IDs drives the reader. Hash history supports
+  // deep links/reloads/back-forward without fetching content or using storage.
+  const chapters = Array.from(document.querySelectorAll('#chapter-content > section'));
+  const contents = document.getElementById('manual-toc');
+  const toggle = document.getElementById('toc-toggle');
+  const previous = document.getElementById('previous-page');
+  const next = document.getElementById('next-page');
+  const scroller = document.getElementById('chapter-content');
+  let current = 0;
+  function closeContents() {
+    contents.classList.remove('toc-open');
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+  function renderChapter(focusHeading) {
+    const requested = window.location.hash.slice(1);
+    current = chapters.findIndex(chapter => chapter.id === requested);
+    if (current < 0) {
+      current = 0;
+      // An empty URL starts on page one without native fragment focusing;
+      // this preserves the initial Tab order and the skip link at the top.
+      if (requested) window.history.replaceState(null, '', '#'+chapters[0].id);
+    }
+    // Hidden chapters leave both the visual layout and accessibility tree.
+    // They also remain hidden in print, which explicitly prints this page only.
+    chapters.forEach((chapter, index) => { chapter.hidden = index !== current; });
+    contents.querySelectorAll('a').forEach(link => {
+      if (link.hash === '#'+chapters[current].id) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+    previous.disabled = current === 0;
+    next.disabled = current === chapters.length - 1;
+    document.getElementById('page-indicator').textContent = (current+1)+' / '+chapters.length+' 페이지';
+    const heading = chapters[current].querySelector('h2');
+    heading.tabIndex = -1;
+    document.title = heading.textContent+' | 흉부 CT 검토실 사용자 매뉴얼';
+    document.querySelector('.skip').href = '#'+chapters[current].id;
+    closeContents();
+    scroller.scrollTop = 0;
+    if (focusHeading) heading.focus({preventScroll:true});
+  }
+  function goTo(index) {
+    if (index < 0 || index >= chapters.length) return;
+    const hash = '#'+chapters[index].id;
+    if (window.location.hash === hash) renderChapter(true);
+    else window.location.hash = hash;
+  }
+  previous.addEventListener('click', () => goTo(current-1));
+  next.addEventListener('click', () => goTo(current+1));
+  // Intercept known chapter links only. Other links keep native browser behavior.
+  document.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener('click', event => {
+    const index = chapters.findIndex(chapter => '#'+chapter.id === link.hash);
+    if (index >= 0) { event.preventDefault(); goTo(index); }
+  }));
+  toggle.addEventListener('click', () => {
+    const expanded = contents.classList.toggle('toc-open');
+    toggle.setAttribute('aria-expanded', String(expanded));
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && contents.classList.contains('toc-open')) {
+      closeContents(); toggle.focus();
+    }
+  });
+  window.addEventListener('hashchange', () => renderChapter(true));
+  renderChapter(false);
+  // Printing is explicitly initiated by the reader; the manual never reads
+  // local storage, workspace APIs or CT/report content.
+  document.getElementById('print-manual').addEventListener('click', function () { window.print(); });
+</script>
+</body></html>

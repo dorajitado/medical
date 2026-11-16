@@ -6,7 +6,7 @@ import fs from 'node:fs';
 test('two nodules synchronize CT, 3D, details and clear across models/series', async ({ page }) => {
   test.setTimeout(90000);
   await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.goto('/');
+  await page.goto('/#viewer');
   await page.getByRole('button', { name: '영상 열기', exact: true }).click();
   await page.getByRole('button',{name:'AI 분석 · 3D',exact:true}).click();
   await page.getByRole('combobox', { name: '분석 모델', exact: true }).click();
@@ -69,7 +69,7 @@ test('3D request failure is shown and retry restores actual surfaces', async ({ 
     if (fail) { fail = false; await route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ detail: 'QA transient surface failure' }) }); }
     else await route.continue();
   });
-  await page.goto('/');
+  await page.goto('/#viewer');
   await page.getByRole('button', { name: '영상 열기', exact: true }).click();
   await page.getByRole('button',{name:'AI 분석 · 3D',exact:true}).click();
   await expect(page.getByText('QA transient surface failure', { exact: true })).toBeVisible();

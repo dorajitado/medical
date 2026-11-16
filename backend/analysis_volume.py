@@ -41,6 +41,18 @@ TASK_STRUCTURES = {
 }
 
 
+def source_digest(sources):
+    """Canonical instance/content identity shared by batches and restored output.
+
+    IDs remain local; their digest is safe for an audit reference. Sorting makes
+    identity independent of import order without removing slice provenance.
+    """
+    pairs = sorted((dict(row).get('instance_id', dict(row).get('id')), row['sha256']) for row in sources)
+    if not pairs or any(not identifier or not digest for identifier, digest in pairs):
+        raise GeometryError('분석 원본 출처가 비어 있습니다.')
+    return hashlib.sha256(json.dumps(pairs, separators=(',', ':')).encode()).hexdigest()
+
+
 def affine_ras(info):
     """Map a zero-based source voxel centre into NIfTI RAS without reordering."""
     lps = np.eye(4)

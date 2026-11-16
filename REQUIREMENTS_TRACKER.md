@@ -1,8 +1,8 @@
 # 요구사항 구현·검증 추적표
 
-기준: REQUIREMENTS.md v0.7 / 갱신일: 2026-11-16
+기준: REQUIREMENTS.md v0.9 / 갱신일: 2026-11-16
 
-현재 상태: 현재 구현 통합·검증 및 좌측 메뉴 UI 반영. 새 기능 확장은 사용자 지시로 중지. 요구사항별 전체 완료 여부는 아래 증거로 구분한다.
+현재 상태: 승인된 CT 중심 종합 검토·일괄 분석·소견 선택 경로를 구현·검증했다. 요구사항별 전체 완료 여부는 아래 증거로 구분한다.
 
 - 구현: 요구사항의 코드 및 동작 연결이 끝난 경우 체크.
 - 검증: 요구사항의 완료 기준을 확인하고 증거를 기록한 경우 체크.
@@ -51,10 +51,10 @@
 | OUT-03 | P0 | 수정·실행 이력 | 2, 8 | [x] | [x] | 검증 완료 | backend/workflow.py, backend/exports.py, src/ReviewWorkspace.tsx — 불변 근거 스냅샷·출처/영상 위치·한글 PDF 시각/JSON 복원·감사 이력, 임의 정상 문장 없음; 증거: docs/verification/remaining.md |
 | OUT-04 | P1 | 로컬 언어모델 문장 다듬기 | 후속 | [ ] | [ ] | 제한 구현 | backend/editorial.py, src/ReviewWorkspace.tsx — Qwen CPU 실제 실행·사용자 확인 인용의 순서 정리/수치·부정·불확실성·출처 보존·환각 출력 차단 검증. 자유 문장 재작성·문체 품질 인수 남음; docs/verification/remaining.md |
 | UI-01 | P0 | React + TypeScript + Material Design | 1, 2, 3 | [x] | [ ] | 사용자 검토 대기 | src/theme.ts, src/App.tsx — React/TS/MUI·기존 블루그레이 테마·메뉴 화면 기술 검증 완료. 최종 사용자 디자인 검토 미완료; docs/verification/remaining.md |
-| UI-02 | P0 | 가변 화면 구성 | 1, 3, 7 | [x] | [x] | 검증 완료 | src/App.tsx, src/ReviewWorkspace.tsx, src/UtilityWorkspace.tsx, src/ExtendedWorkspace.tsx — 좌측 11개 메뉴·선택 화면·PC/모바일 Drawer·확대·API 동적 상태·초안/후보 유지·키보드/3종 해상도와 오류 회귀; 증거: docs/verification/remaining.md |
-| UI-03 | P0 | 데이터 기반 화면 | 1, 3, 7 | [x] | [x] | 검증 완료 | src/App.tsx, src/ReviewWorkspace.tsx, src/UtilityWorkspace.tsx, src/ExtendedWorkspace.tsx — 좌측 11개 메뉴·선택 화면·PC/모바일 Drawer·확대·API 동적 상태·초안/후보 유지·키보드/3종 해상도와 오류 회귀; 증거: docs/verification/remaining.md |
-| UI-04 | P0 | 입력·대기·오류·재시도 상태 | 1, 3, 7 | [x] | [x] | 검증 완료 | src/App.tsx, src/ReviewWorkspace.tsx, src/UtilityWorkspace.tsx, src/ExtendedWorkspace.tsx — 좌측 11개 메뉴·선택 화면·PC/모바일 Drawer·확대·API 동적 상태·초안/후보 유지·키보드/3종 해상도와 오류 회귀; 증거: docs/verification/remaining.md |
-| UI-05 | P0 | 조작·가독성 | 1, 3, 7 | [x] | [x] | 검증 완료 | src/App.tsx, src/ReviewWorkspace.tsx, src/UtilityWorkspace.tsx, src/ExtendedWorkspace.tsx — 좌측 11개 메뉴·선택 화면·PC/모바일 Drawer·확대·API 동적 상태·초안/후보 유지·키보드/3종 해상도와 오류 회귀; 증거: docs/verification/remaining.md |
+| UI-02 | P0 | 가변 화면 구성 | 1, 3, 7 | [x] | [x] | 검증 완료 | src/App.tsx, src/ReviewWorkspace.tsx, src/UtilityWorkspace.tsx, src/ExtendedWorkspace.tsx, src/IntegratedReview.tsx — 좌측 12개 메뉴 (종합 검토 추가)·선택 화면·PC/모바일 Drawer·확대·API 동적 상태·초안/후보 유지·키보드/3종 해상도와 오류 회귀; 증거: docs/verification/remaining.md |
+| UI-03 | P0 | 데이터 기반 화면 | 1, 3, 7 | [x] | [x] | 검증 완료 | src/App.tsx, src/ReviewWorkspace.tsx, src/UtilityWorkspace.tsx, src/ExtendedWorkspace.tsx, src/IntegratedReview.tsx — 좌측 12개 메뉴 (종합 검토 추가)·선택 화면·PC/모바일 Drawer·확대·API 동적 상태·초안/후보 유지·키보드/3종 해상도와 오류 회귀; 증거: docs/verification/remaining.md |
+| UI-04 | P0 | 입력·대기·오류·재시도 상태 | 1, 3, 7 | [x] | [x] | 검증 완료 | src/App.tsx, src/ReviewWorkspace.tsx, src/UtilityWorkspace.tsx, src/ExtendedWorkspace.tsx, src/IntegratedReview.tsx — 좌측 12개 메뉴 (종합 검토 추가)·선택 화면·PC/모바일 Drawer·확대·API 동적 상태·초안/후보 유지·키보드/3종 해상도와 오류 회귀; 증거: docs/verification/remaining.md |
+| UI-05 | P0 | 조작·가독성 | 1, 3, 7 | [x] | [x] | 검증 완료 | src/App.tsx, src/ReviewWorkspace.tsx, src/UtilityWorkspace.tsx, src/ExtendedWorkspace.tsx, src/IntegratedReview.tsx — 좌측 12개 메뉴 (종합 검토 추가)·선택 화면·PC/모바일 Drawer·확대·API 동적 상태·초안/후보 유지·키보드/3종 해상도와 오류 회귀; 증거: docs/verification/remaining.md |
 | NFR-01 | P0 | 환자 데이터 로컬 처리 | 2, 9, 10 | [x] | [x] | 검증 완료 | backend/analysis_runtime.py, backend/offline/sitecustomize.py, backend/documents.py, backend/ocr_worker.mjs, backend/editorial.py — 영상 모델 외부 TCP/DNS 차단·원격 서비스 없는 로컬 OCR/CPU 모델, 고정 설치와 환자 처리 분리, 로컬 자산 처리·Edge 외부 요청 없음. 전면 보안 감사/임상 평가 아님; 증거: docs/verification/remaining.md |
 | NFR-02 | P0 | 로컬 접근 및 파일 보호 | 2, 9, 10 | [x] | [x] | 검증 완료 | backend/app.py, backend/maintenance.py, backend/documents.py, backend/owned_process.py — 요청 출처/호스트/경로 보호·백업 해시/복원/롤백·범위/확인 삭제·중단 이동 복구/잠금 재시도·재시작 실패/소유 자식 관리; 운영 자료 자동 복원/삭제 없음; 증거: docs/verification/remaining.md |
 | NFR-03 | P0 | 데이터 영속성·백업·삭제 | 2, 10 | [x] | [x] | 검증 완료 | backend/app.py, backend/maintenance.py, backend/documents.py, backend/owned_process.py — 요청 출처/호스트/경로 보호·백업 해시/복원/롤백·범위/확인 삭제·중단 이동 복구/잠금 재시도·재시작 실패/소유 자식 관리; 운영 자료 자동 복원/삭제 없음; 증거: docs/verification/remaining.md |
@@ -68,11 +68,15 @@
 | VAL-03 | P0 | 데이터 누출 없는 분석·평가 | 9 | [x] | [x] | 검증 완료 | backend/test_workflow.py, backend/test_remaining.py, backend/extended_workflow.py — 문서/모호한 연결/출처 회귀·소견 비입력 영상 추론, 원본/제공 환자 그룹 분할 방지와 평가 준비; 전문 정답 성능은 미평가; 증거: docs/verification/remaining.md |
 | VAL-04 | P0 | 기능 인수 및 요구사항 추적 | 1~10 | [x] | [x] | 검증 완료 | REQUIREMENTS_TRACKER.md, REMAINING_PROGRESS.md, docs/verification/remaining.md — 각 P0 구현/증거/미완료·보류 목록, 기능 검토 릴리스 범위 명시. 모든 P0 인수나 임상 통과 선언 아님; 증거: docs/verification/remaining.md |
 | VAL-05 | 조건부 | 진료 적용 평가 | 별도 평가 | [ ] | [ ] | 평가 준비 | 사용자 답변: 전문 정답·검토자 아직 없음. backend/extended_workflow.py, docs/CLINICAL_EVALUATION.md — 평가 사례/분할/계수/대장·절차 준비. 표본/목표·실제 전문가 평가·진료 적용 인수 미완료 |
+| AI-11 | P0 | CT 종합 분석 실행 조율 | 2, 5, 7 | [x] | [x] | 검증 완료 | backend/ct_review.py, ct_review_api.py, analysis.py, storage.py — 고정 원본의 네 모델 순차 실행·상태/취소·준비 실패/재시작/실행 연결·새 버전. 공개 예제 실제 일괄 실행 119.343초, 보고서 입력 없음; backend/test_ct_review.py 및 docs/verification/ct-review.md |
+| OUT-05 | P0 | CT 중심 종합 검토 | 7, 8 | [x] | [x] | 검증 완료 | backend/ct_review.py, exports.py, src/IntegratedReview.tsx — 한국어 후보/해부학 추정 위치·실측·원본 출처·범위·독립/중복 제안·사용자 기록. 소견 대조 기본 꺼짐·무자료 허용·구버전 차단, CT 전용 고정 PDF/JSON·백업/삭제 정합; docs/verification/ct-review.md |
+| UI-06 | P0 | 종합 검토 기본 화면 | 7 | [x] | [x] | 검증 완료 | src/App.tsx, IntegratedReview.tsx, AnalysisPanel.tsx — 기본 진입·CT만으로 한 번 실행/이해/저장·정확한 실행/후보의 CT/3D/상세 연결·390/1280/1920·오류 재시도; tests/ct-review/integrated.spec.ts 4개, docs/verification/ct-review.md. 최종 디자인 사용자 인수는 UI-01 별도 |
+| UI-07 | P0 | 사용자 매뉴얼·앱 도움말 | 1, 7, 9, 10 | [x] | [x] | 검증 완료 | public/user-manual.html, src/App.tsx, docs/USER_MANUAL.md — 실제 CT/선택 소견·결과/근거/저장/문제 해결·백업/종료 안내, 앱 새 창·오프라인·12장별 한 페이지/이전/다음·키보드/모바일/현재 장 인쇄. tests/ct-review/manual.spec.ts 신규 2개와 기존 종합 4개 통과, docs/verification/user-manual.md |
 
 ## 현재 집계
 
-- 전체 요구사항: 55개
-- P0: 48개 / 검증 완료 45 (93.8%) / 구현 완료·전체 검증 대기 3 (UI-01, NFR-05, NFR-07)
+- 전체 요구사항: 59개
+- P0: 52개 / 검증 완료 49 (94.2%) / 전체 검증 대기 3: UI-01·NFR-05·NFR-07
 - P1: 4개 / 구현·검증 완료 2 / 부분·제한 구현 2
 - 조건부: 3개 / 전체 구현·검증 완료 0 / 선행 조건·실제 평가 대기 3
 
@@ -104,3 +108,13 @@
 2026-11-15 4주차: AI-03/04/05/07, VIEW-05/06, VAL-01 초기 지원 범위 인수. 기존 출처/설치/큐·로컬/오류 검증 보강. 전체 55개/P0 48개 유지. 진료 적용은 VAL-05 미완료. 증거: docs/verification/week4.md.
 
 2026-11-16: 현재 구현 통합과 좌측 메뉴 UI 인수. P0 45/48=93.8%, P1 2/4 검증 완료. 원래 R-01~12는 부분 기준을 보존하며 임상 평가/조건부를 완료 처리하지 않는다. 사용자 지시로 새 확장 중지, 메뉴 UI 우선. 증거: docs/verification/remaining.md.
+
+2026-11-16 사용자 변경: CT만으로 종합 검토, 병원 대조 선택. 새 3개 P0를 추가해 58개/P0 51개. 이전 45/48 기록은 과거 분모로 유지. CTG-01~06으로 개발·검증.
+
+2026-11-16 CTG 결과: 6/6, AI-11/OUT-05/UI-06 구현·검증 인수. Python 80개 고유 검사 및 마지막 변경의 CT 전용 15개 재검증, Edge 19개 고유 검사·빌드·공개 예제 실제 추론·한글 PDF 3쪽 확인. 운영 API 0.7.0, 기존 자료 보존·자동 추론 없음. 전체 P0 48/51=94.1%, P1/조건부 및 임상 평가 보류 유지. 증거: docs/verification/ct-review.md.
+
+2026-11-16 UI-04/UI-06·AI-11 표시 개선 검증: src/IntegratedReview.tsx에 실제 완료/선택 항목 기준 퍼센트·결정형 막대·실패/취소 별도 개수·완료 후 100% 유지 추가. tests/ct-review/integrated.spec.ts에서 실행 중 0보다 크고 100보다 작은 값, 완료 100%, 1개 실패 시 75%, 취소 후 DB 실제 비율·접근성 값을 검증. Edge 4개(29.1초) 및 타입/빌드 통과, docs/verification/ct-review.md 후속 기록. 구현/검증 체크와 전체 P0 48/51은 유지.
+
+2026-11-16 UI-07 인수: MAN-01~03 3/3. 실제 사용자 매뉴얼/앱 링크·로컬 오프라인·인쇄 표시·목차/키보드/해상도, 빌드·Edge 6개(신규 2개) 통과·운영 HTML 제공 확인. 전체 59개/P0 52개 중 49개(94.2%) 검증. 근거: docs/verification/user-manual.md. 기존 미완료 항목 유지.
+
+2026-11-16 UI-07/UI-05 페이지 개선 추가 인수: public/user-manual.html, tests/ct-review/manual.spec.ts — 선택한 한 장만 표시·이전/다음·페이지 번호·브라우저 이력·오프라인·현재 장 인쇄·초점/스크롤/모바일 접기. 초기 Tab 순서 수정 뒤 Edge 2개 7.8초·빌드·운영 제공 통과. MPG-01~03 3/3, 전체 P0 49/52 유지. 증거 docs/verification/user-manual.md 후속 기록.

@@ -68,6 +68,18 @@ class Store:
                     cancel_requested INTEGER NOT NULL DEFAULT 0
                 );
                 CREATE INDEX IF NOT EXISTS analysis_series ON analysis_runs(series_id,created_at);
+                -- A CT-only batch owns a fixed input and explicit model slots.
+                -- Member/run binding is committed with each analysis enqueue.
+                CREATE TABLE IF NOT EXISTS integrated_batches (
+                    id TEXT PRIMARY KEY, series_id TEXT NOT NULL REFERENCES series(id),
+                    state TEXT NOT NULL, plan TEXT NOT NULL,
+                    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+                CREATE TABLE IF NOT EXISTS integrated_batch_models (
+                    batch_id TEXT NOT NULL REFERENCES integrated_batches(id),
+                    model_id TEXT NOT NULL, run_id TEXT REFERENCES analysis_runs(id),
+                    issue TEXT, PRIMARY KEY(batch_id,model_id)
+                );
                 -- Appended versions keep machine extraction, source text and
                 -- user interpretation separate. Payloads are immutable JSON.
                 CREATE TABLE IF NOT EXISTS extraction_versions (
@@ -126,7 +138,10 @@ class Store:
                     WHERE status='running';
                 UPDATE source_documents SET status='failed',error='서버 재시작으로 문서 추출이 중단되었습니다. 원본을 다시 등록해 주세요.'
                     WHERE status='running';
-                PRAGMA user_version=4;
+                UPDATE integrated_batch_models SET issue='서버 재시작으로 실행 준비가 중단되었습니다.'
+                    WHERE run_id IS NULL AND batch_id IN (SELECT id FROM integrated_batches WHERE state='preparing');
+                UPDATE integrated_batches SET state='interrupted' WHERE state='preparing';
+                PRAGMA user_version=5;
             ''')
         # Only managed staging files are disposable; originals are never removed here.
         for file in (self.root / 'staging').glob('*.part'):

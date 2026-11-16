@@ -17,7 +17,7 @@ import nibabel as nib
 import numpy as np
 
 from .analysis_runtime import AI_PYTHON, ROOT, CONFIGURATION, CONFIGURATIONS, inference_environment, runtime_status
-from .analysis_volume import convert_source, eligible
+from .analysis_volume import convert_source, eligible, source_digest
 from .geometry import GeometryError, validate_series
 from .workflow import audit
 
@@ -71,7 +71,9 @@ class AnalysisManager:
                 'anatomical_coverage': 'thoracic series must be confirmed by user; not inferred from contrast tags',
                 'validation_status': 'technical_only; clinical_not_evaluated'}
 
-    def enqueue(self, series_id, confirmed, model_id='total'):
+    def enqueue(self, series_id, confirmed, model_id='total', batch_id=None):
+        if self.closed.is_set():
+            raise GeometryError('분석 서비스가 종료 중입니다. 앱을 다시 실행한 뒤 시도해 주세요.')
         if confirmed is not True:
             raise GeometryError('선택 시리즈와 분석 한계를 확인해 주세요.')
         possible = self.eligibility(series_id, model_id)
@@ -84,13 +86,26 @@ class AnalysisManager:
         snapshot = {'configuration': CONFIGURATIONS[model_id], 'runtime': runtime}
         with self.store.connect() as c:
             c.execute('BEGIN IMMEDIATE')
+            if batch_id is not None:
+                batch = c.execute('SELECT * FROM integrated_batches WHERE id=?', (batch_id,)).fetchone()
+                slot = c.execute('SELECT run_id FROM integrated_batch_models WHERE batch_id=? AND model_id=?', (batch_id, model_id)).fetchone()
+                if batch is None or batch['series_id'] != series_id or batch['state'] != 'preparing' or slot is None or slot['run_id'] is not None:
+                    raise GeometryError('종합 분석의 시리즈/모델 연결이 유효하지 않습니다.')
+                snapshot['batch_source'] = json.loads(batch['plan'])['source']
             if c.execute("SELECT id FROM analysis_runs WHERE series_id=? AND model_id=? AND status IN ('queued','running')", (series_id, model_id)).fetchone():
                 raise GeometryError('이 시리즈·모델의 분석이 이미 대기 또는 실행 중입니다.')
             c.execute("INSERT INTO analysis_runs(id,series_id,model_id,status,stage,snapshot) VALUES (?,?,?,'queued','queued',?)",
                       (rid, series_id, model_id, json.dumps(snapshot)))
+            if batch_id is not None:
+                # A crash cannot leave a run unbound between these two writes.
+                c.execute('UPDATE integrated_batch_models SET run_id=? WHERE batch_id=? AND model_id=?', (rid, batch_id, model_id))
             study=c.execute('SELECT study_id FROM series WHERE id=?',(series_id,)).fetchone()[0]
             audit(c,'analysis_queued',rid,study,{'model_id':model_id,'configuration_version':CONFIGURATIONS[model_id]['version']})
-        self.pool.submit(self.execute, rid)
+        try:
+            self.pool.submit(self.execute, rid)
+        except RuntimeError as exc:
+            self.update(rid, 'failed', 'failed', '분석 작업 실행기를 시작하지 못했습니다. 앱을 다시 실행한 뒤 시도해 주세요.')
+            raise GeometryError('분석 작업 실행기를 시작하지 못했습니다.') from exc
         return self.get(rid)
 
     def cancel(self, run_id):
@@ -138,7 +153,12 @@ class AnalysisManager:
             if checked.get('weights_digest') != run['snapshot'].get('runtime', {}).get('weights_digest'):
                 raise GeometryError('대기 중 모델 가중치 식별이 변경되었습니다. 새 실행이 필요합니다.')
             (folder / 'request.json').write_text(json.dumps({'model_id': run['model_id'], 'configuration': run['snapshot']['configuration']}), encoding='utf-8')
-            convert_source(self.store, run['series_id'], folder, run['model_id'])
+            source = convert_source(self.store, run['series_id'], folder, run['model_id'])
+            expected = run['snapshot'].get('batch_source')
+            if expected and (source_digest(source['sources']) != expected['digest'] or
+                             source['geometry']['shape_xyz'] != expected['shape_xyz'] or
+                             not np.allclose(source['affine_ras'], expected['affine_ras'], atol=1e-6, rtol=0)):
+                raise GeometryError('종합 분석 대기 중 CT 원본/공간 정보가 바뀌었습니다. 현재 CT로 새 분석을 시작해 주세요.')
             if not self.active(rid):
                 return
             self.update(rid, 'running', 'inference')
